@@ -27,7 +27,7 @@ jobs:
           fi
           code=$(curl -s -o /dev/null -w "%{http_code}" \
             "$URL/rest/v1/profiles?select=id&limit=1" \
-            -H "apikey: $KEY" -H "Authorization: Bearer $KEY")
+            -H "apikey: $KEY")
           echo "Supabase respondeu HTTP $code"
           if [ "$code" != "200" ]; then
             echo "::error::Supabase não respondeu 200 — pode estar pausado. Abra o painel do Supabase e clique em Restore."
