@@ -1,0 +1,44 @@
+# Dá uma "cutucada" no Supabase a cada 3 dias para o projeto gratuito
+# não pausar por falta de uso. Lê a URL e a chave anon do index.html.
+name: Manter Supabase acordado
+
+on:
+  schedule:
+    - cron: "17 12 */3 * *"   # a cada 3 dias, ~9h17 de Brasília
+  workflow_dispatch:           # botão "Run workflow" para testar na mão
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  cutucar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cutucar o Supabase
+        run: |
+          URL=$(sed -n "s/^const SUPABASE_URL='\([^']*\)'.*/\1/p" index.html)
+          KEY=$(sed -n "s/^const SUPABASE_ANON_KEY='\([^']*\)'.*/\1/p" index.html)
+          if [ -z "$URL" ] || echo "$URL$KEY" | grep -q COLE_AQUI; then
+            echo "::notice::Supabase ainda não configurado no index.html — nada a fazer."
+            exit 0
+          fi
+          code=$(curl -s -o /dev/null -w "%{http_code}" \
+            "$URL/rest/v1/profiles?select=id&limit=1" \
+            -H "apikey: $KEY" -H "Authorization: Bearer $KEY")
+          echo "Supabase respondeu HTTP $code"
+          if [ "$code" != "200" ]; then
+            echo "::error::Supabase não respondeu 200 — pode estar pausado. Abra o painel do Supabase e clique em Restore."
+            exit 1
+          fi
+
+      # O GitHub desliga agendamentos de repositórios sem commits há 60 dias;
+      # isto renova o agendamento a cada execução.
+      - name: Manter o agendamento ligado
+        run: |
+          curl -s -o /dev/null -w "HTTP %{http_code}\n" -X PUT \
+            -H "Authorization: Bearer ${{ github.token }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/manter-supabase-acordado.yml/enable"

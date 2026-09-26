@@ -68,3 +68,15 @@ Para dar acesso a outra professora ou monitora, rode o mesmo comando com o e-mai
 - **Aluno esqueceu a senha:** ele toca em "esqueci minha senha" e recebe um link por e-mail. Se o limite de e-mails estourar, você pode redefinir a senha dele em **Supabase → Authentication → Users**.
 - **Apagar um aluno:** em **Authentication → Users**, apague o usuário. Os dados dele somem junto.
 - **Quem usou a versão antiga** (dados salvos só no navegador) vê, no rodapé do painel, o botão "Trazer dados da versão antiga deste navegador".
+
+---
+
+## Supabase gratuito sem pausar
+
+O plano gratuito do Supabase pausa o projeto depois de 7 dias sem uso. O arquivo
+[`.github/workflows/manter-supabase-acordado.yml`](.github/workflows/manter-supabase-acordado.yml)
+faz o GitHub dar uma "cutucada" no banco a cada 3 dias, então ele não pausa mesmo que ninguém use o site.
+
+- Só começa a rodar quando estiver na branch `main` e com a URL/chave preenchidas no `index.html`.
+- Para testar na hora: GitHub → aba **Actions** → **Manter Supabase acordado** → **Run workflow**.
+- Se algum dia pausar mesmo assim, nenhum dado se perde: abra o projeto no Supabase e clique em **Restore**.
