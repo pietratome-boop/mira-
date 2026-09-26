@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mira · protótipo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FAF6EF; --surface:#FFFFFF; --surface-2:#F5F0E7;
+  --ink:#22302C; --muted:#5E645C; --line:#E7DFD2;
+  --teal:#16362F; --terra:#C15A38; --terra-soft:#FBEEE7;
+  --sage:#566345; --sage-fill:#6E7F5B; --sage-soft:#EEF1E7;
+  --amber:#B07B1E;
+  --serif:'Spectral',Georgia,serif; --sans:'Source Sans 3',system-ui,-apple-system,sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#141E1A; --surface:#1C2823; --surface-2:#222E29;
+    --ink:#F1EADD; --muted:#A9A59B; --line:#31403A;
+    --teal:#9FD9C6; --terra:#E0946A; --terra-soft:#2C211B;
+    --sage:#A7B58C; --sage-fill:#7E8B6A; --sage-soft:#1F2A20; --amber:#D9AC58;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55;
+  -webkit-font-smoothing:antialiased;padding:0 20px 80px}
+.wrap{max-width:820px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:12px;padding:34px 0 0}
+.dot{width:30px;height:30px;border-radius:9px;background:var(--terra);position:relative;flex:none}
+.dot::after{content:"";position:absolute;inset:10px;border-radius:50%;background:var(--bg)}
+.brand h1{font-family:var(--serif);font-weight:600;font-size:24px;margin:0}
+.brand span{font-size:13px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase}
+section{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:26px 28px;margin-top:22px}
+.eyebrow{font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--terra);font-weight:700;margin:0 0 4px}
+.sage .eyebrow{color:var(--sage)}
+h2{font-family:var(--serif);font-weight:600;font-size:22px;margin:0 0 4px}
+.sub{font-size:14.5px;color:var(--muted);margin:0 0 20px}
+label.f{display:block;font-size:14px;font-weight:600;margin:16px 0 8px}
+select,input[type=text],input[type=date]{width:100%;font-family:var(--sans);font-size:15px;color:var(--ink);
+  background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+/* hero */
+.hero{background:var(--teal);color:var(--bg);border-radius:18px;padding:28px 30px;margin-top:22px}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.hello{font-size:14px;opacity:.75;margin:0}
+.hname{font-family:var(--serif);font-weight:600;font-size:34px;margin:2px 0 0;line-height:1.05}
+.editbtn{font-family:var(--sans);font-size:12.5px;color:var(--teal);background:var(--bg);border:none;border-radius:8px;padding:6px 12px;cursor:pointer;font-weight:700;flex:none}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.chip-exam{font-size:13px;background:rgba(255,255,255,.12);border-radius:20px;padding:6px 14px}
+.hero-stats{display:flex;align-items:baseline;gap:14px;margin-top:20px}
+.statnum{font-family:var(--serif);font-size:44px;font-weight:600;line-height:1}
+.statlbl{font-size:14px;opacity:.8}
+.motiv{margin:18px 0 0;font-size:15px;opacity:.92;font-style:italic}
+/* board */
+.board-scroll{overflow-x:auto;margin:0 -4px}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:640px}
+th,td{padding:9px 10px;text-align:center;white-space:nowrap}
+th{font-size:12px;color:var(--muted);font-weight:600;border-bottom:1px solid var(--line)}
+td:first-child,th:first-child{text-align:left}
+tbody tr td{border-bottom:1px solid var(--line)}
+.simname{font-weight:600}
+.simdate{color:var(--muted);font-size:12.5px}
+.tot{font-weight:700}
+.pct{font-weight:700;color:var(--terra)}
+.rm{cursor:pointer;color:var(--muted);border:none;background:none;font-size:18px;line-height:1;padding:0 6px}
+.rm:hover{color:var(--terra)}
+/* todo */
+.todo{display:flex;align-items:flex-start;gap:14px;padding:18px 0;border-bottom:1px solid var(--line)}
+.todo:last-child{border-bottom:none}
+.check{flex:none;width:30px;height:30px;border-radius:50%;border:2px solid var(--sage-fill);background:none;
+  cursor:pointer;color:var(--sage-fill);font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.check:hover{background:var(--sage-soft)}
+.todo-body{flex:1;min-width:0}
+.todo-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.prio{font-family:var(--serif);font-size:22px;font-weight:600;color:var(--terra)}
+.todo-tema{font-size:17px;font-weight:700}
+.todo-area{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.todo-cond{font-size:15px;margin-top:4px}
+.todo-meta{font-size:13px;color:var(--muted);margin-top:7px}
+.todo-sub{font-size:12.5px;color:var(--muted);margin-top:6px;font-style:italic}
+.chip{display:inline-block;font-size:12px;padding:2px 9px;border-radius:20px;margin-right:6px}
+.chip.alta{background:var(--sage-soft);color:var(--sage)}
+.chip.media{background:#F7EFD9;color:var(--amber)}
+.chip.baixa{background:var(--terra-soft);color:var(--terra)}
+.incid{display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap}
+.incid span{font-size:12.5px;color:var(--muted);margin-right:2px}
+.incid button{font-family:var(--sans);font-size:12.5px;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);border-radius:20px;padding:4px 12px;cursor:pointer}
+.incid button.on{background:var(--teal);color:var(--bg);border-color:var(--teal)}
+.empty{color:var(--muted);font-size:15px;padding:12px 0;line-height:1.6}
+.cleared{background:var(--sage-soft);border-radius:12px;padding:20px;font-size:15px;line-height:1.6}
+.cleared b{color:var(--sage)}
+.alert{background:var(--surface-2);border-radius:12px;padding:16px 18px;margin-top:18px;font-size:14px;line-height:1.55}
+.alert b{color:var(--sage)}
+/* add error card */
+.qbtns{display:flex;gap:12px}
+button.opt{font-family:var(--sans);font-size:15px;text-align:left;color:var(--ink);background:var(--surface-2);
+  border:1px solid var(--line);border-radius:10px;padding:13px 15px;cursor:pointer;width:100%;margin-top:10px;transition:.12s}
+button.opt:hover{border-color:var(--muted)}
+button.opt.on{background:var(--teal);color:var(--bg);border-color:var(--teal)}
+.qbtns button.opt{margin-top:0;flex:1}
+button.opt.sabia.on{background:var(--terra);border-color:var(--terra);color:#fff}
+.conduta{margin-top:20px;background:var(--terra-soft);border-radius:12px;padding:18px 20px}
+.conduta h3{font-family:var(--serif);font-weight:600;font-size:19px;margin:0 0 4px}
+.conduta p{margin:0;font-size:14.5px;color:var(--muted)}
+.recup{display:flex;justify-content:space-between;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);
+  font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.recup b{font-size:15px;text-transform:none;letter-spacing:0}
+.cta{margin-top:20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.cta button,.addbtn,.primary{font-family:var(--sans);font-size:15px;font-weight:700;color:#fff;background:var(--teal);border:none;border-radius:10px;padding:13px 24px;cursor:pointer}
+.addbtn{background:var(--sage-fill)}
+.cta button:disabled{opacity:.4;cursor:not-allowed}
+.err{color:var(--terra);font-size:13.5px;font-weight:600}
+.left-count{font-size:13.5px;color:var(--muted)}
+/* sim form */
+.simhead{display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.simhead input{flex:1;min-width:150px}
+.simgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px}
+.simcell{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:11px 12px}
+.simcell label{display:block;font-size:13px;font-weight:700;margin:0 0 8px}
+.simcell .qa{display:flex;gap:8px}
+.simcell .qa>div{flex:1}
+.simcell .qa .cap{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:center;margin-bottom:4px}
+.simcell .qa input{width:100%;padding:8px 6px;text-align:center;font-family:var(--sans);font-size:15px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px}
+/* onboarding */
+.ob-exam{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.ob-exam input{flex:1;min-width:130px}
+.exam-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 14px;border:1px solid var(--line);border-radius:10px;margin-bottom:10px;background:var(--surface-2)}
+.exam-row.on{border-color:var(--terra);background:var(--terra-soft)}
+.exam-main{display:flex;align-items:center;gap:12px;font-size:15px;cursor:pointer;flex:1}
+.exam-main input{width:18px;height:18px;accent-color:var(--terra);flex:none}
+.exam-date{flex:none;width:172px;font-family:var(--sans);font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.exam-date:disabled{opacity:.4}
+@media(max-width:520px){.exam-row{flex-wrap:wrap}.exam-date{width:100%}}
+.ghost{font-family:var(--sans);font-size:14px;color:var(--muted);background:none;border:1px dashed var(--line);border-radius:10px;padding:10px 16px;cursor:pointer}
+.foot{margin-top:22px;font-size:13px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap}
+.foot button{font-family:var(--sans);font-size:13px;color:var(--muted);background:none;border:1px solid var(--line);border-radius:8px;padding:7px 14px;cursor:pointer}
+datalist{color:#000}
+.inc-auto{display:inline-block;font-size:12.5px;padding:3px 11px;border-radius:20px;font-weight:600}
+.inc-auto.inc-alta{background:var(--sage-soft);color:var(--sage)}
+.inc-auto.inc-media{background:#F7EFD9;color:var(--amber)}
+.inc-auto.inc-baixa{background:var(--terra-soft);color:var(--terra)}
+.reinc{display:inline-block;margin-top:8px;font-size:12.5px;font-weight:700;color:var(--terra);background:var(--terra-soft);border-radius:20px;padding:3px 11px}
+.rev{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
+.rev:last-child{border-bottom:none}
+.rev-ic{flex:none;width:30px;height:30px;border-radius:50%;background:var(--sage-fill);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px}
+.rev-ic.back{background:var(--terra)}
+.rev-body{flex:1;min-width:0}
+.rev-tema{font-size:16px;font-weight:700}
+.rev-meta{font-size:13px;color:var(--muted);margin-top:3px}
+.rev-st{flex:none;font-size:12px;font-weight:700;border-radius:20px;padding:3px 11px}
+.rev-st.ok{background:var(--sage-soft);color:var(--sage)}
+.rev-st.back{background:var(--terra-soft);color:var(--terra)}
+.undo{font-family:var(--sans);font-size:12px;color:var(--muted);background:none;border:none;text-decoration:underline;cursor:pointer;padding:0;margin-left:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand"><div class="dot"></div><h1>Mira</h1><span>protótipo</span></div>
+
+  <!-- ONBOARDING -->
+  <div id="onboarding" style="display:none">
+    <section>
+      <p class="eyebrow">Antes de começar</p>
+      <h2>Quem é você e o que vai prestar</h2>
+      <p class="sub">Isso monta o seu painel. As provas que você escolher vão, no futuro, direcionar o cálculo de incidência de cada tema.</p>
+      <label class="f" for="obname">Seu nome</label>
+      <input type="text" id="obname" placeholder="ex: Ana">
+      <label class="f">Provas que você vai prestar</label>
+      <p class="sub" style="margin-top:-2px">Marque as que vai fazer. Se já souber a data, preencha — o painel usa ela na contagem regressiva.</p>
+      <div id="obexams"></div>
+      <div class="cta"><button class="primary" id="obstart">Começar</button><span class="err" id="oberr"></span></div>
+    </section>
+  </div>
+
+  <!-- APP -->
+  <div id="app" style="display:none">
+    <div class="hero">
+      <div class="hero-top">
+        <div><p class="hello">Olá,</p><div class="hname" id="hname"></div></div>
+        <button class="editbtn" id="editprofile">editar</button>
+      </div>
+      <div class="chips" id="countchips"></div>
+      <div class="hero-stats"><div class="statnum" id="totpct">—</div><div class="statlbl" id="totsub"></div></div>
+      <p class="motiv" id="motiv"></p>
+    </div>
+
+    <section>
+      <p class="eyebrow">Simulados que você já fez</p>
+      <h2>Seu placar por área</h2>
+      <p class="sub">A base de tudo. As áreas fracas aparecem pela taxa de erro.</p>
+      <div class="board-scroll"><table id="board"></table></div>
+    </section>
+
+    <section class="sage">
+      <p class="eyebrow">Sua fila de revisão</p>
+      <h2>Revise nesta ordem — e vá marcando</h2>
+      <p class="sub">Cada tema com a orientação do que fazer. Marcou como revisado, ele sai. Quando a fila zerar, um novo simulado revela os próximos.</p>
+      <div id="todo"></div>
+      <div id="alert"></div>
+    </section>
+
+
+    <section id="classify">
+      <p class="eyebrow">Adicionar simulado</p>
+      <h2>Lance um simulado por área</h2>
+      <p class="sub">Preencha só as áreas que caíram. As em branco são ignoradas.</p>
+      <div id="simform"></div>
+    </section>
+
+    <section>
+      <p class="eyebrow">Adicionar erro</p>
+      <h2>Duas perguntas e a Mira sabe o que fazer</h2>
+      <p class="sub">Classifique cada questão errada. A área você já sabe pelo placar; aqui ela vira tema.</p>
+      <label class="f" for="area">Área do erro <span class="left-count" id="leftcount"></span></label>
+      <select id="area"></select>
+      <label class="f" for="tema">Tema da questão</label>
+      <select id="tema"></select>
+      <input type="text" id="temaOutro" placeholder="Escreva o tema" autocomplete="off" style="display:none;margin-top:10px">
+      <input type="text" id="subtema" placeholder="Subtema (opcional) — ex: cadeia alimentar, Era Vargas…" autocomplete="off" style="margin-top:10px">
+      <label class="f">Você sabia o conteúdo desse tema?</label>
+      <div class="qbtns">
+        <button class="opt sabia" data-q1="sabia">Sabia</button>
+        <button class="opt sabia" data-q1="naosabia">Não sabia</button>
+      </div>
+      <div id="q2wrap" style="display:none">
+        <label class="f">Então o que aconteceu na hora?</label>
+        <button class="opt" data-tipo="aplicacao">Sabia a teoria, mas não soube aplicar</button>
+        <button class="opt" data-tipo="interpretacao">Entendi errado o que o enunciado pedia</button>
+        <button class="opt" data-tipo="atencao">Escorreguei — marquei errado sem querer</button>
+        <button class="opt" data-tipo="tempo">Acabou o tempo e eu chutei</button>
+        <button class="opt" data-tipo="banca">Caí numa pegadinha da banca</button>
+      </div>
+      <div class="conduta" id="conduta" style="display:none">
+        <p class="eyebrow" id="cond-area">conduta</p>
+        <h3 id="cond-title"></h3>
+        <p id="cond-desc"></p>
+        <div class="recup"><span>recuperabilidade do ponto</span><b id="cond-recup"></b></div>
+      </div>
+      <div class="cta"><button id="reg" disabled>Registrar erro</button><span class="err" id="regerr"></span></div>
+    </section>
+
+    <section class="sage">
+      <p class="eyebrow">Temas já revisados</p>
+      <h2>O que você já estudou pela fila</h2>
+      <p class="sub">Tudo que você marcou como revisado. Se errar de novo um desses temas, ele volta para a fila como <b>reincidente</b> — com prioridade maior e uma conduta diferente.</p>
+      <div id="revisados"></div>
+    </section>
+
+    <div class="foot"><span>Protótipo — seus dados ficam só neste navegador.</span><button id="importtut">Carregar histórico da tutoranda</button><button id="reset">Recomeçar do zero</button></div>
+  </div>
+</div>
+
+<script>
+function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+let profile=load('mira_profile',null);
+let SIMS=load('mira_sims',[]);
+let S=load('mira_state',{cls:[],incid:{},done:{}});
+if(!S.done)S.done={};
+if(!S.hist)S.hist={};
+Object.keys(S.done).forEach(k=>{if(S.done[k]!=null&&!S.hist[k])S.hist[k]=[{at:S.done[k],date:null}];});
+S.done={};
+const TUTORANDA_SIMS=[
+ {date:"05/abr",name:"Einstein 2023",a:{"Biologia":[5,3],"Química":[5,4],"Física":[5,4],"História":[5,4],"Geografia":[5,4],"Português":[10,10],"Língua estr.":[5,5],"Matemática":[10,5]}},
+ {date:"10/abr",name:"Einstein 2024",a:{"Biologia":[5,5],"Química":[5,5],"Física":[5,1],"História":[5,4],"Geografia":[5,5],"Português":[10,10],"Língua estr.":[5,4],"Matemática":[10,3]}},
+ {date:"12/abr",name:"Einstein 2026.2",a:{"Biologia":[5,3],"Química":[5,4],"Física":[5,4],"História":[5,3],"Geografia":[5,4],"Português":[10,10],"Língua estr.":[5,5],"Matemática":[10,7]}},
+ {date:"02/jun",name:"Unesp 2024",a:{"Biologia":[9,6],"Química":[7,2],"Física":[7,3],"História":[9,7],"Geografia":[12,11],"Filosofia/Socio":[8,5],"Português":[20,18],"Língua estr.":[10,9],"Matemática":[8,5]}},
+ {date:"10/jun",name:"ENEM Simulado",a:{"Biologia":[15,12],"Química":[15,9],"Física":[15,10],"História":[15,12],"Geografia":[15,13],"Filosofia/Socio":[15,12],"Português":[40,35],"Língua estr.":[5,4],"Matemática":[45,31]}}
+];
+function importTutoranda(){let n=0;TUTORANDA_SIMS.forEach(t=>{if(!SIMS.some(s=>s.name.toLowerCase()===t.name.toLowerCase()&&s.date===t.date)){SIMS.push(JSON.parse(JSON.stringify(t)));n++;}});return n;}
+(function(){let f=null;try{f=localStorage.getItem('mira_tut_v1')}catch(e){}
+ if(!f){importTutoranda();try{localStorage.setItem('mira_sims',JSON.stringify(SIMS));localStorage.setItem('mira_tut_v1','1')}catch(e){}}})();
+
+function save(){try{localStorage.setItem('mira_profile',JSON.stringify(profile));localStorage.setItem('mira_sims',JSON.stringify(SIMS));localStorage.setItem('mira_state',JSON.stringify(S))}catch(e){}}
+
+const AREAS=["Biologia","Química","Física","História","Geografia","Filosofia/Socio","Português","Língua estr.","Matemática"];
+const WEIGHT={conteudo:.45,aplicacao:.80,interpretacao:.80,banca:.65};
+const KNOWLEDGE=["conteudo","aplicacao","interpretacao","banca"];
+const CONDUTA={
+ conteudo:["Estudar o tema do zero","O buraco é de base: teoria antes de questão."],
+ aplicacao:["Mais questões — não reler resumo","Bateria de 10 a 15 questões do mesmo recorte."],
+ interpretacao:["Treino de leitura e de reformular a pergunta","Reescreva o enunciado com suas palavras antes de resolver."],
+ banca:["Estudar o estilo daquela banca","Mapear as pegadinhas clássicas da prova-alvo."],
+ atencao:["Checklist de revisão e controle de tempo","Erro de execução — não é do tema, é do momento."],
+ tempo:["Estratégia de prova, não conteúdo","Erro de execução — ordem das questões e relógio."],
+};
+const TIPONAME={conteudo:"Erro de conteúdo",aplicacao:"Erro de aplicação",interpretacao:"Erro de interpretação",banca:"Erro de banca",atencao:"Erro de atenção",tempo:"Erro de tempo"};
+const RECUP_TXT={conteudo:"baixa",aplicacao:"alta",interpretacao:"alta",banca:"média"};
+const INCID={baixa:.4,"média":.7,alta:1};
+const EXAM_INCID={
+"Biologia":{
+"Genética":{"Einstein — Medicina":"alta","Fuvest (USP)":"média","ENEM":"alta","Unesp":"alta","Unicamp":"média"},
+"Ecologia":{"Einstein — Medicina":"média","Fuvest (USP)":"alta","ENEM":"alta","Unesp":"alta","Unicamp":"alta"},
+"Citologia":{"Einstein — Medicina":"média","Unesp":"média"},
+"Fisiologia humana":{"Einstein — Medicina":"média","Unesp":"alta"},
+"Botânica":{"Einstein — Medicina":"média","Fuvest (USP)":"média"},
+"Microbiologia":{"Fuvest (USP)":"média"},
+"Parasitologia":{"Einstein — Medicina":"média"},
+"Evolução":{"Unesp":"média","ENEM":"média","Unicamp":"alta"},
+"Zoologia":{"Fuvest (USP)":"média"},
+"Bioquímica":{"Einstein — Medicina":"baixa"}
+},
+"Química":{
+"Química orgânica":{"Einstein — Medicina":"alta","Fuvest (USP)":"alta","ENEM":"alta"},
+"Estequiometria":{"Einstein — Medicina":"média","Fuvest (USP)":"média","ENEM":"alta","Unicamp":"alta"},
+"Termoquímica":{"Einstein — Medicina":"média","Fuvest (USP)":"média"},
+"Soluções":{"Einstein — Medicina":"média","Fuvest (USP)":"média"},
+"Físico-química":{"Einstein — Medicina":"média"},
+"Equilíbrio químico":{"Fuvest (USP)":"alta"},
+"Radioatividade":{"Einstein — Medicina":"média"},
+"Funções inorgânicas":{"Einstein — Medicina":"média","ENEM":"média"},
+"Ligações químicas":{"Einstein — Medicina":"média","Fuvest (USP)":"média","Unesp":"média"},
+"Reações químicas":{"Unesp":"média","ENEM":"média"},
+"Química ambiental":{"Unicamp":"média","ENEM":"média"}
+},
+"Física":{
+"Eletrodinâmica":{"Einstein — Medicina":"alta","Fuvest (USP)":"alta","ENEM":"alta","Unesp":"alta"},
+"Óptica":{"Einstein — Medicina":"alta","Unesp":"média"},
+"Ondulatória":{"Einstein — Medicina":"alta","Fuvest (USP)":"média","ENEM":"média"},
+"Termologia":{"Einstein — Medicina":"média","Fuvest (USP)":"alta","ENEM":"média","Unesp":"média"},
+"Mecânica":{"Einstein — Medicina":"média","Fuvest (USP)":"média","ENEM":"média","Unesp":"alta"},
+"Trabalho e energia":{"Fuvest (USP)":"alta","Unesp":"média"},
+"Eletromagnetismo":{"Unesp":"média","Einstein — Medicina":"baixa"},
+"Gravitação":{"Einstein — Medicina":"baixa"}
+},
+"Matemática":{
+"Matemática básica":{"Einstein — Medicina":"média","Fuvest (USP)":"alta","ENEM":"alta","Unesp":"alta"},
+"Geometria plana":{"Einstein — Medicina":"média","Fuvest (USP)":"alta","ENEM":"alta","Unesp":"alta"},
+"Geometria espacial":{"Einstein — Medicina":"média","Fuvest (USP)":"alta","Unesp":"média"},
+"Trigonometria":{"Einstein — Medicina":"média","Fuvest (USP)":"alta","Unesp":"média"},
+"Probabilidade":{"Einstein — Medicina":"média","ENEM":"média","Unesp":"média"},
+"Funções":{"ENEM":"alta","Unesp":"alta","Fuvest (USP)":"média"},
+"Estatística":{"ENEM":"alta"},
+"Matemática financeira":{"ENEM":"alta"},
+"Análise combinatória":{"Einstein — Medicina":"baixa"},
+"Geometria analítica":{"Einstein — Medicina":"média"}
+},
+"História":{
+"História do Brasil":{"Einstein — Medicina":"alta","ENEM":"alta","Unesp":"alta"},
+"História Geral":{"Einstein — Medicina":"alta"},
+"Brasil Colônia":{"Einstein — Medicina":"média","Fuvest (USP)":"alta","Unesp":"média"},
+"Brasil República":{"Einstein — Medicina":"média","ENEM":"alta"},
+"Idade Moderna/Contemporânea":{"Einstein — Medicina":"média","Fuvest (USP)":"alta"},
+"Antiguidade/Idade Média":{"Einstein — Medicina":"baixa"}
+},
+"Geografia":{
+"Geomorfologia":{"Einstein — Medicina":"alta"},
+"Cartografia":{"Einstein — Medicina":"alta"},
+"Clima":{"Fuvest (USP)":"alta","Unesp":"média"},
+"Urbanização":{"Einstein — Medicina":"média","Unesp":"média"},
+"Geopolítica":{"Einstein — Medicina":"média"},
+"Meio ambiente":{"Einstein — Medicina":"média","ENEM":"alta","Unesp":"média"},
+"Demografia":{"Einstein — Medicina":"média","Fuvest (USP)":"média"},
+"Espaço agrário":{"Fuvest (USP)":"média"}
+},
+"Português":{
+"Interpretação de texto":{"Einstein — Medicina":"alta","ENEM":"alta"},
+"Sintaxe/Gramática":{"Einstein — Medicina":"média"},
+"Escolas literárias":{"Einstein — Medicina":"média"},
+"Figuras de linguagem":{"Einstein — Medicina":"média"},
+"Variação linguística":{"Einstein — Medicina":"baixa"}
+},
+"Língua estr.":{
+"Interpretação de texto":{"Einstein — Medicina":"alta","ENEM":"alta"},
+"Vocabulário":{"Einstein — Medicina":"média"}
+}
+};
+const VUNESP_ESCOLAS=["Santa Casa — Medicina","Famema — Medicina","Famerp — Medicina","Unifesp — Medicina"];
+const VUNESP_INCID={"Biologia": {"Genética": "alta","Ecologia": "alta","Botânica": "média","Fisiologia humana": "média","Parasitologia": "baixa","Citologia": "baixa","Evolução": "baixa","Zoologia": "baixa","Bioquímica": "baixa","Embriologia": "baixa","Microbiologia": "baixa"},"Química": {"Química orgânica": "alta","Eletroquímica": "média","Estequiometria": "média","Radioatividade": "média","Soluções": "média","Equilíbrio químico": "baixa","Gases": "baixa","Propriedades da matéria": "baixa","Cinética química": "baixa","Estrutura atômica": "baixa","Funções inorgânicas": "baixa","Ligações químicas": "baixa","Química geral": "baixa"},"Física": {"Termologia": "alta","Cinemática": "média","Dinâmica": "média","Eletrodinâmica": "média","Hidrostática": "média","Óptica": "média","Ondulatória": "baixa","Eletromagnetismo": "baixa","Física moderna": "baixa"},"Matemática": {"Geometria plana": "alta","Análise combinatória": "média","Funções": "média","Geometria espacial": "média","Estatística": "baixa","Geometria analítica": "baixa","Probabilidade": "baixa","Razão e proporção": "baixa","Sistemas lineares": "baixa","Frações": "baixa","Porcentagem": "baixa","Progressões": "baixa","Aritmética": "baixa"},"História": {"Brasil República": "alta","Idade Contemporânea": "média","Antiguidade": "média","Brasil Colônia": "média","Idade Média": "média","Século XX": "média","Brasil Império": "média","Idade Moderna": "baixa"},"Geografia": {"Geografia econômica": "alta","Meio ambiente": "alta","Geopolítica": "média","Cartografia": "média","Urbanização": "média","Geologia": "baixa","Clima": "baixa","Demografia": "baixa","Geografia do Brasil": "baixa","Geomorfologia": "baixa"},"Português": {"Interpretação": "alta","Sintaxe": "alta","Literatura": "alta","Figuras de linguagem": "baixa","Semântica": "baixa","Morfologia": "baixa","Variação linguística": "baixa"},"Língua estr.": {"Interpretação": "alta"}};
+const TEMAS={};
+[...new Set([].concat(Object.keys(EXAM_INCID),Object.keys(VUNESP_INCID)))].forEach(function(a){
+ var st=new Set();
+ if(EXAM_INCID[a])Object.keys(EXAM_INCID[a]).forEach(function(t){st.add(t);});
+ if(VUNESP_INCID[a])Object.keys(VUNESP_INCID[a]).forEach(function(t){st.add(t);});
+ TEMAS[a]=[...st];
+});
+const TIER_ORDER={baixa:1,"média":2,alta:3};
+function autoIncid(area,tema){
+ const sel=(profile&&profile.exams?profile.exams.map(e=>e.name):[]);
+ let best=null,exs=[];
+ function consider(tier,label){if(!tier)return;if(!best||TIER_ORDER[tier]>TIER_ORDER[best]){best=tier;exs=[label];}else if(tier===best&&exs.indexOf(label)<0){exs.push(label);}}
+ var rec=EXAM_INCID[area]&&EXAM_INCID[area][tema];
+ if(rec)Object.entries(rec).forEach(function(p){if(sel.indexOf(p[0])>=0)consider(p[1],p[0]);});
+ var vt=VUNESP_INCID[area]&&VUNESP_INCID[area][tema];
+ if(vt&&sel.some(function(e){return VUNESP_ESCOLAS.indexOf(e)>=0;}))consider(vt,"VUNESP");
+ return best?{tier:best,exams:exs}:null;
+}
+
+/* ---------- ONBOARDING ---------- */
+const EXAMS=[
+ {id:"enem",name:"ENEM"},
+ {id:"fuvest",name:"Fuvest (USP)"},
+ {id:"unicamp",name:"Unicamp"},
+ {id:"unesp",name:"Unesp"},
+ {id:"famema",name:"Famema — Medicina"},
+ {id:"famerp",name:"Famerp — Medicina"},
+ {id:"unifesp",name:"Unifesp — Medicina"},
+ {id:"einstein",name:"Einstein — Medicina"},
+ {id:"santacasa",name:"Santa Casa — Medicina"},
+ {id:"sirio",name:"Sírio-Libanês — Medicina"},
+ {id:"bp",name:"BP — Beneficência Portuguesa — Medicina"}
+];
+let obSel={};
+function renderObExams(){
+ const box=document.getElementById('obexams');box.innerHTML='';
+ EXAMS.forEach(e=>{
+  const st=obSel[e.id]||{checked:false,date:''};
+  const row=document.createElement('div');row.className='exam-row'+(st.checked?' on':'');
+  row.innerHTML="<label class='exam-main'><input type='checkbox' "+(st.checked?'checked':'')+" data-id='"+e.id+"'><span>"+e.name+"</span></label>"+
+   "<input type='date' class='exam-date' value='"+(st.date||'')+"' data-date='"+e.id+"'"+(st.checked?'':' disabled')+">";
+  box.appendChild(row);
+ });
+ box.querySelectorAll('[data-id]').forEach(c=>c.addEventListener('change',()=>{
+  const id=c.dataset.id;obSel[id]=obSel[id]||{date:''};obSel[id].checked=c.checked;renderObExams();}));
+ box.querySelectorAll('[data-date]').forEach(d=>d.addEventListener('input',()=>{
+  const id=d.dataset.date;obSel[id]=obSel[id]||{checked:true};obSel[id].date=d.value;}));
+}
+document.getElementById('obstart').addEventListener('click',()=>{
+ const name=document.getElementById('obname').value.trim();
+ const err=document.getElementById('oberr');err.textContent='';
+ if(!name){err.textContent='Escreva seu nome.';return;}
+ const exams=EXAMS.filter(e=>obSel[e.id]&&obSel[e.id].checked).map(e=>({name:e.name,date:(obSel[e.id].date||'')}));
+ if(!exams.length){err.textContent='Marque ao menos uma prova.';return;}
+ profile={name,exams};save();showApp();
+});
+function showOnboarding(){
+ obSel={};
+ if(profile&&profile.exams)profile.exams.forEach(pe=>{const m=EXAMS.find(x=>x.name===pe.name);if(m)obSel[m.id]={checked:true,date:pe.date||''};});
+ document.getElementById('obname').value=profile?profile.name:'';
+ renderObExams();
+ document.getElementById('onboarding').style.display='block';
+ document.getElementById('app').style.display='none';
+}
+document.getElementById('editprofile').addEventListener('click',showOnboarding);
+
+/* ---------- HERO ---------- */
+function daysUntil(ds){const d=new Date(ds+'T00:00:00');const n=new Date();n.setHours(0,0,0,0);return Math.round((d-n)/86400000);}
+function totals(){let tq=0,ta=0;SIMS.forEach(s=>AREAS.forEach(a=>{const c=s.a[a];if(c&&c[0]){tq+=c[0];ta+=c[1]}}));return{tq,ta};}
+function renderHero(){
+ document.getElementById('hname').textContent=profile.name;
+ let ch='';(profile.exams||[]).forEach(e=>{
+  if(!e.date){ch+="<span class='chip-exam'>"+e.name+"</span>";return;}
+  const d=daysUntil(e.date);
+  const txt=d>0?("faltam "+d+" dia"+(d>1?'s':'')):d===0?"é hoje!":("passou há "+(-d)+" dia"+(d<-1?'s':''));
+  ch+="<span class='chip-exam'><b>"+e.name+"</b> · "+txt+"</span>";
+ });
+ document.getElementById('countchips').innerHTML=ch;
+ const {tq,ta}=totals();
+ document.getElementById('totpct').textContent=tq?Math.round(ta/tq*100)+'%':'—';
+ document.getElementById('totsub').textContent=tq?('de acerto geral · '+SIMS.length+' simulado'+(SIMS.length>1?'s':'')):'de acerto geral';
+ document.getElementById('motiv').textContent=motiv();
+}
+function motiv(){
+ if(!SIMS.length)return "Sem dado, não existe Mira. Comece adicionando um simulado.";
+ const t=activeTemas();
+ if(!t.length && state_hasClassified())return "Fila zerada — isso é raro. Traga um novo simulado e siga em frente.";
+ if(!t.length)return "Registre os erros dos seus simulados para a fila de revisão nascer.";
+ return "Um tema de cada vez. Você já mapeou "+t.length+" foco"+(t.length>1?'s':'')+" — comece pelo topo.";
+}
+function state_hasClassified(){return S.cls.some(c=>KNOWLEDGE.includes(c.tipo));}
+
+/* ---------- BOARD ---------- */
+function buildBoard(){
+ const t=document.getElementById('board');
+ if(!SIMS.length){t.innerHTML="<tbody><tr><td class='empty' style='padding:6px 2px'>Nenhum simulado ainda — adicione o primeiro na seção abaixo.</td></tr></tbody>";return;}
+ let h="<thead><tr><th>Simulado</th>";AREAS.forEach(a=>h+="<th>"+a+"</th>");h+="<th>Total</th><th>%</th><th></th></tr></thead><tbody>";
+ SIMS.forEach((s,i)=>{let tq=0,ta=0;h+="<tr><td><span class='simname'>"+s.name+"</span><br><span class='simdate'>"+s.date+"</span></td>";
+  AREAS.forEach(a=>{const c=s.a[a];if(c&&c[0]){tq+=c[0];ta+=c[1];h+="<td>"+c[1]+"/"+c[0]+"</td>"}else h+="<td>—</td>"});
+  h+="<td class='tot'>"+ta+"/"+tq+"</td><td class='pct'>"+(tq?Math.round(ta/tq*100):0)+"%</td><td><button class='rm' data-rm='"+i+"' title='Remover'>×</button></td></tr>"});
+ h+="</tbody>";t.innerHTML=h;
+ t.querySelectorAll('[data-rm]').forEach(b=>b.addEventListener('click',()=>{SIMS.splice(+b.dataset.rm,1);saveAndRender();}));
+}
+function errorsByArea(){const m={};AREAS.forEach(a=>m[a]=0);SIMS.forEach(s=>AREAS.forEach(a=>{const c=s.a[a];if(c)m[a]+=c[0]-c[1]}));return m;}
+function classifiedByArea(a){return S.cls.filter(c=>c.area===a).length;}
+
+/* ---------- TEMAS / TODO ---------- */
+function temaMap(){
+ const m={};
+ S.cls.forEach(c=>{if(!KNOWLEDGE.includes(c.tipo))return;
+  const k=c.area+" · "+c.tema.toLowerCase();
+  if(!m[k])m[k]={area:c.area,tema:c.tema,n:0,w:0,types:{},subs:{},seq:[]};m[k].seq.push(c.tipo);
+  m[k].n++;m[k].w+=WEIGHT[c.tipo];m[k].types[c.tipo]=(m[k].types[c.tipo]||0)+1;
+  if(c.sub)m[k].subs[c.sub]=(m[k].subs[c.sub]||0)+1;});
+ return m;
+}
+const REINC_BOOST=.5; // cada revisão anterior que não segurou aumenta a prioridade em 50%
+const CONDUTA_REINC={
+ conteudo:["Voltou a errar: estude de novo, por outra fonte","A primeira revisão não fixou. Troque de material (outra aula ou livro) e feche com 10 questões."],
+ aplicacao:["Voltou a errar: questões de novo, agora espaçadas","Refaça as que errou daqui a 3 e 7 dias, sem olhar a resolução."],
+ interpretacao:["Voltou a errar: treine o enunciado deste tema","Grife o comando de cada questão e anote qual armadilha te pegou."],
+ banca:["Voltou a errar: monte um caderno de pegadinhas","Anote cada armadilha deste tema e releia antes da prova."]
+};
+function histOf(k){return (S.hist&&S.hist[k])||[];}
+function fmtDate(iso){if(!iso)return null;try{return new Date(iso).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}).replace('.','');}catch(e){return null}}
+function activeTemas(){
+ const m=temaMap();const arr=[];
+ Object.entries(m).forEach(([k,v])=>{
+  const h=histOf(k);const doneAt=h.length?h[h.length-1].at:null;
+  if(doneAt!=null && v.n<=doneAt)return; // revisado e sem erros novos
+  const reinc=h.length>0;
+  const novos=reinc?v.seq.slice(doneAt):v.seq;
+  const recup=v.w/v.n;
+  const ai=autoIncid(v.area,v.tema);
+  const inc = ai ? ai.tier : (S.incid[k]||null);
+  const incV = inc?INCID[inc]:1;
+  const cnt={};novos.forEach(t=>cnt[t]=(cnt[t]||0)+1);
+  let dom='conteudo',best=-1;Object.entries(cnt).forEach(([t,c])=>{if(c>best){best=c;dom=t}});
+  const boost=1+REINC_BOOST*h.length;
+  arr.push({k,area:v.area,tema:v.tema,n:v.n,recup,inc,incAuto:ai,dom,subs:v.subs,reinc,revs:h.length,novos:novos.length,lastRev:reinc?h[h.length-1].date:null,score:v.n*recup*incV*boost});
+ });
+ arr.sort((a,b)=>b.score-a.score);return arr;
+}
+function renderRevisados(){
+ const box=document.getElementById('revisados');if(!box)return;
+ const m=temaMap();
+ const items=Object.keys(S.hist||{}).filter(k=>m[k]&&histOf(k).length).map(k=>{
+  const h=histOf(k),v=m[k],last=h[h.length-1];
+  return {k,area:v.area,tema:v.tema,n:v.n,revs:h.length,last,back:v.n>last.at,novos:Math.max(v.n-last.at,0)};
+ });
+ if(!items.length){box.innerHTML="<p class='empty'>Nenhum tema revisado ainda. Quando você marcar um tema da fila como revisado, ele aparece aqui.</p>";return;}
+ items.sort((a,b)=>(b.back-a.back)||String(b.last.date||'').localeCompare(String(a.last.date||'')));
+ box.innerHTML=items.map(t=>{
+  const d=fmtDate(t.last.date);
+  const meta="revisado "+t.revs+"x"+(d?" · última em "+d:"")+" · "+t.n+" erro"+(t.n>1?"s":"")+" no total";
+  const st=t.back?"<span class='rev-st back'>voltou para a fila · +"+t.novos+"</span>":"<span class='rev-st ok'>em dia</span>";
+  return "<div class='rev'><div class='rev-ic"+(t.back?" back":"")+"'>"+(t.back?"↺":"✓")+"</div><div class='rev-body'><div class='rev-tema'>"+t.tema+" <span class='todo-area'>"+t.area+"</span></div><div class='rev-meta'>"+meta+"<button class='undo' data-undo=\""+t.k+"\">desfazer</button></div></div>"+st+"</div>";
+ }).join("");
+ box.querySelectorAll('[data-undo]').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.undo;S.hist[k].pop();if(!S.hist[k].length)delete S.hist[k];saveAndRender();}));
+}
+function f_tier(t){return t==='alta'?'alta':t==='média'?'media':'baixa';}
+function shortExam(n){return n.replace(' — Medicina','').replace(' (USP)','').replace(' — Beneficência Portuguesa','');}
+function renderTodo(){
+ renderRevisados();
+ const box=document.getElementById('todo');const arr=activeTemas();const anyClassified=state_hasClassified();
+ if(!arr.length){
+  if(anyClassified)box.innerHTML="<div class='cleared'><b>Fila limpa.</b> Você revisou todos os focos atuais. Faça um <b>novo simulado</b>, registre os erros dele e os próximos temas aparecem aqui.</div>";
+  else box.innerHTML="<p class='empty'>Sua fila está vazia. Assim que você registrar os erros de um simulado, os temas aparecem aqui — do mais urgente ao que pode esperar.</p>";
+ } else {
+  box.innerHTML=arr.map((t,i)=>{
+   const f=t.recup>=.75?["alta","alta"]:t.recup>=.55?["media","média"]:["baixa","baixa"];
+   const cond=t.reinc?(CONDUTA_REINC[t.dom]||CONDUTA[t.dom]):CONDUTA[t.dom];
+   let incHtml;
+   if(t.incAuto){incHtml="<span class='inc-auto inc-"+f_tier(t.incAuto.tier)+"'>incidência "+t.incAuto.tier+" · "+t.incAuto.exams.map(shortExam).join(', ')+"</span>";}
+   else {const incBtns=["baixa","média","alta"].map(l=>"<button class='"+(t.inc===l?"on":"")+"' data-inc=\""+t.k+"\" data-lvl=\""+l+"\">"+l+"</button>").join("");incHtml="<span>incidência (defina):</span>"+incBtns;}
+   return "<div class='todo'><button class='check' data-done=\""+t.k+"\" data-n='"+t.n+"' title='marcar como revisado'>○</button>"+
+    "<div class='todo-body'><div class='todo-head'><span class='prio'>"+(i+1)+"</span><span class='todo-tema'>"+t.tema+"</span><span class='todo-area'>"+t.area+"</span></div>"+
+    (t.reinc?"<div class='reinc'>↺ reincidente · revisado "+t.revs+"x"+(t.lastRev?" (última em "+fmtDate(t.lastRev)+")":"")+" · +"+t.novos+" erro"+(t.novos>1?"s":"")+" depois</div>":"")+
+    "<div class='todo-cond'>"+cond[0]+"</div>"+(t.reinc?"<div class='todo-sub' style='font-style:normal'>"+cond[1]+"</div>":"")+
+    "<div class='todo-meta'><span class='chip "+f[0]+"'>recup. "+f[1]+"</span>"+t.n+" erro"+(t.n>1?"s":"")+" de conhecimento</div>"+
+    ((t.subs&&Object.keys(t.subs).length)?("<div class='todo-sub'>dentro: "+Object.entries(t.subs).sort(function(a,b){return b[1]-a[1];}).map(function(x){return x[0]+" ("+x[1]+")";}).join(" · ")+"</div>"):"")+
+    "<div class='incid'>"+incHtml+"</div></div></div>";
+  }).join("");
+  box.querySelectorAll('[data-done]').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.done;(S.hist[k]=S.hist[k]||[]).push({at:+b.dataset.n,date:new Date().toISOString()});saveAndRender();}));
+  box.querySelectorAll('[data-inc]').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.inc,l=b.dataset.lvl;S.incid[k]=S.incid[k]===l?null:l;saveAndRender();}));
+ }
+ const exec=S.cls.filter(c=>c.tipo==="atencao"||c.tipo==="tempo");
+ const al=document.getElementById('alert');
+ if(exec.length){const at=exec.filter(c=>c.tipo==="atencao").length,tp=exec.filter(c=>c.tipo==="tempo").length;
+  al.innerHTML="<div class='alert'><b>Alerta global — não é de tema.</b> "+exec.length+" erro"+(exec.length>1?"s":"")+" de execução ("+at+" de atenção, "+tp+" de tempo), espalhados. Não entram na fila porque não são de um tema — mas são os pontos mais baratos da prova. Conserto geral: checklist de revisão e gestão de tempo.</div>";
+ }else al.innerHTML='';
+}
+
+/* ---------- ADD SIMULADO ---------- */
+function buildSimForm(){
+ const f=document.getElementById('simform');
+ let h="<div class='simhead'><input type='text' id='sfdate' placeholder='Data (ex: 12/set)'><input type='text' id='sfname' placeholder='Nome do simulado'></div><div class='simgrid'>";
+ AREAS.forEach((a,i)=>{h+="<div class='simcell'><label>"+a+"</label><div class='qa'><div><div class='cap'>Quest.</div><input type='number' min='0' id='sfq"+i+"'></div><div><div class='cap'>Acertos</div><input type='number' min='0' id='sfa"+i+"'></div></div></div>";});
+ h+="</div><div class='cta'><button class='addbtn' id='sfadd'>Adicionar simulado</button> <span class='err' id='sferr'></span></div>";
+ f.innerHTML=h;document.getElementById('sfadd').addEventListener('click',addSim);
+}
+function addSim(){
+ const name=(document.getElementById('sfname').value||'').trim();
+ const date=(document.getElementById('sfdate').value||'').trim();
+ const err=document.getElementById('sferr');err.textContent='';
+ const a={};let any=false;
+ for(let i=0;i<AREAS.length;i++){
+  const qv=document.getElementById('sfq'+i).value,av=document.getElementById('sfa'+i).value;
+  if(qv===''&&av==='')continue;
+  const q=parseInt(qv||'0',10),ac=parseInt(av||'0',10);
+  if(isNaN(q)||q<=0){err.textContent='Confira as questões de '+AREAS[i]+'.';return;}
+  if(isNaN(ac)||ac<0||ac>q){err.textContent='Em '+AREAS[i]+', acertos não pode passar das questões.';return;}
+  a[AREAS[i]]=[q,ac];any=true;
+ }
+ if(!any){err.textContent='Preencha ao menos uma área.';return;}
+ SIMS.push({date:date||'—',name:name||('Simulado '+(SIMS.length+1)),a});saveAndRender();buildSimForm();
+}
+
+/* ---------- ADD ERRO ---------- */
+function buildAreaSelect(){
+ const sel=document.getElementById('area');const eb=errorsByArea();
+ const opts=AREAS.filter(a=>eb[a]>0).map(a=>{const left=eb[a]-classifiedByArea(a);
+  return "<option value='"+a+"'"+(left<=0?" disabled":"")+">"+a+" — "+Math.max(left,0)+" erro"+(left===1?"":"s")+" a classificar</option>";});
+ sel.innerHTML=opts.length?opts.join(''):"<option value='' disabled selected>adicione um simulado primeiro</option>";
+ updateLeft();fillTemas(sel.value);
+}
+function updateLeft(){const a=document.getElementById('area').value;if(!a){document.getElementById('leftcount').textContent='';return;}
+ const eb=errorsByArea();document.getElementById('leftcount').textContent='· '+Math.max(eb[a]-classifiedByArea(a),0)+' restantes nesta área';}
+function fillTemas(area){
+ const sel=document.getElementById('tema');
+ const temas=(TEMAS[area]||[]).slice().sort(function(a,b){return a.localeCompare(b);});
+ let h="<option value='' disabled selected>selecione o tema</option>";
+ temas.forEach(function(t){h+="<option value=\""+t+"\">"+t+"</option>";});
+ h+="<option value='__outro__'>Outro (especificar)…</option>";
+ sel.innerHTML=h;
+ document.getElementById('temaOutro').style.display='none';document.getElementById('temaOutro').value='';
+ var sb=document.getElementById('subtema');if(sb)sb.value='';
+}
+let cur={q1:null,tipo:null};
+function resetCard(keepArea){cur={q1:null,tipo:null};
+ document.querySelectorAll('[data-q1]').forEach(b=>b.classList.remove('on'));
+ document.querySelectorAll('[data-tipo]').forEach(b=>b.classList.remove('on'));
+ document.getElementById('q2wrap').style.display='none';document.getElementById('conduta').style.display='none';
+ document.getElementById('reg').disabled=true;document.getElementById('regerr').textContent='';}
+function showConduta(tipo){cur.tipo=tipo;const c=CONDUTA[tipo];
+ document.getElementById('cond-area').textContent='conduta — '+TIPONAME[tipo];
+ document.getElementById('cond-title').textContent=c[0];document.getElementById('cond-desc').textContent=c[1];
+ document.getElementById('cond-recup').textContent = RECUP_TXT[tipo] ? RECUP_TXT[tipo] : 'não entra na fila (erro de execução)';
+ document.getElementById('conduta').style.display='block';document.getElementById('reg').disabled=false;}
+document.querySelectorAll('[data-q1]').forEach(b=>b.addEventListener('click',()=>{
+ document.querySelectorAll('[data-q1]').forEach(x=>x.classList.remove('on'));b.classList.add('on');cur.q1=b.dataset.q1;
+ document.querySelectorAll('[data-tipo]').forEach(x=>x.classList.remove('on'));
+ if(cur.q1==='naosabia'){document.getElementById('q2wrap').style.display='none';showConduta('conteudo');}
+ else{document.getElementById('q2wrap').style.display='block';document.getElementById('conduta').style.display='none';document.getElementById('reg').disabled=true;cur.tipo=null;}
+}));
+document.querySelectorAll('[data-tipo]').forEach(b=>b.addEventListener('click',()=>{
+ document.querySelectorAll('[data-tipo]').forEach(x=>x.classList.remove('on'));b.classList.add('on');showConduta(b.dataset.tipo);
+}));
+document.getElementById('area').addEventListener('change',function(){updateLeft();fillTemas(this.value);});
+document.getElementById('tema').addEventListener('change',function(){document.getElementById('regerr').textContent='';document.getElementById('temaOutro').style.display=this.value==='__outro__'?'block':'none';});
+document.getElementById('reg').addEventListener('click',()=>{
+ const selT=document.getElementById('tema').value;
+ const tema = selT==='__outro__' ? document.getElementById('temaOutro').value.trim() : selT;
+ const area=document.getElementById('area').value;
+ const sub=(document.getElementById('subtema').value||'').trim();
+ if(!area){document.getElementById('regerr').textContent='Adicione um simulado primeiro.';return;}
+ if(!tema){document.getElementById('regerr').textContent='Selecione ou escreva o tema.';return;}
+ if(!cur.tipo){document.getElementById('regerr').textContent='Responda as perguntas.';return;}
+ S.cls.push({area,tema,tipo:cur.tipo,sub:sub||null});save();resetCard(true);
+ buildAreaSelect();document.getElementById('area').value=area;if(!document.getElementById('area').value)document.getElementById('area').selectedIndex=0;
+ fillTemas(area);updateLeft();renderTodo();renderHero();
+});
+
+document.getElementById('importtut').addEventListener('click',()=>{const n=importTutoranda();saveAndRender();alert(n?n+' simulado(s) adicionado(s).':'O histórico já está no placar.');});
+document.getElementById('reset').addEventListener('click',()=>{
+ if(!confirm('Isso apaga perfil, simulados e erros deste navegador. Continuar?'))return;
+ profile=null;SIMS=[];S={cls:[],incid:{},done:{},hist:{}};save();location.reload();
+});
+
+/* ---------- ORCHESTRATION ---------- */
+function saveAndRender(){save();buildBoard();buildAreaSelect();renderTodo();renderHero();}
+function showApp(){
+ document.getElementById('onboarding').style.display='none';
+ document.getElementById('app').style.display='block';
+ buildSimForm();buildBoard();buildAreaSelect();renderTodo();renderHero();
+}
+if(profile&&profile.name)showApp();else showOnboarding();
+</script>
+</body>
+</html>
