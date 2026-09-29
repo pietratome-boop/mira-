@@ -33,6 +33,8 @@ html = swap(
 DEMO_CSS = """/* faixa do protótipo */
 .demobar{margin-top:22px;border:1px dashed var(--terra);border-radius:var(--r);padding:16px 18px;background:var(--terra-soft);font-size:14.5px;display:flex;flex-direction:column;gap:12px}
 .demobar p{margin:0}
+.sharenote{font-size:13px;color:var(--muted)}
+.sharenote.on{color:var(--sage);font-weight:600}
 .demobtns{display:flex;flex-wrap:wrap;gap:8px}
 .demobtns button{font-family:var(--sans);font-size:14px;font-weight:700;border-radius:10px;padding:9px 14px;cursor:pointer;border:1px solid var(--teal);background:var(--teal);color:var(--bg)}
 .demobtns button.alt{background:none;color:var(--teal)}
@@ -43,7 +45,8 @@ html = swap(html, "</style>", DEMO_CSS + "</style>")
 
 DEMO_BAR = """<div class="wrap">
   <div class="demobar" id="demobar">
-    <p><b>Protótipo para teste.</b> Tudo funciona como no site de verdade, mas as contas e os dados ficam só neste navegador. Os alunos abaixo são de exemplo (senha de todos: <b>mira123</b>).</p>
+    <p><b>Protótipo para teste.</b> Tudo funciona como no site de verdade. Os alunos abaixo são de exemplo (senha de todos: <b>mira123</b>). Crie sua própria conta em "Criar conta" para testar como um aluno novo.</p>
+    <p class="sharenote" id="sharenote">As contas e os dados que você criar ficam neste navegador.</p>
     <div class="demobtns">
       <button id="demo-aluno">Entrar como aluna (Júlia)</button>
       <button id="demo-prof" class="alt">Entrar como professora</button>
@@ -57,6 +60,13 @@ DEMO_JS = """
 /* ---------- BOTÕES DO PROTÓTIPO ---------- */
 $('demo-aluno').addEventListener('click',async()=>{await flush();window.__miraDemo.loginAs('julia@exemplo.com');});
 $('demo-prof').addEventListener('click',async()=>{await flush();window.__miraDemo.loginAs('professora@exemplo.com');});
+window.addEventListener('mira-remote',()=>{if(ME.profile&&ME.profile.is_teacher&&!RO&&$('v-teacher').style.display!=='none')loadClass();});
+window.addEventListener('mira-share',e=>{const n=$('sharenote');const st=e.detail;
+ n.classList.toggle('on',st==='on');
+ n.textContent=st==='on'?'Seus testes estão sendo compartilhados com a dona do protótipo: ela vê suas contas no painel da professora.'
+  :st==='readonly'?'Seu acesso a este link é só de leitura: seus testes ficam neste navegador e não são compartilhados.'
+  :st==='error'?'Não consegui compartilhar seus testes agora; eles continuam salvos neste navegador.'
+  :'As contas e os dados que você criar ficam neste navegador e são compartilhados com a dona do protótipo.';});
 $('demo-reset').addEventListener('click',async()=>{
  if(!await ask('Apagar as contas criadas e voltar os alunos de exemplo ao começo?','Recomeçar'))return;
  dirty=false;clearTimeout(syncT);window.__miraDemo.reset();await sb.auth.signOut();
