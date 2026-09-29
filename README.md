@@ -80,3 +80,13 @@ faz o GitHub dar uma "cutucada" no banco a cada 3 dias, então ele não pausa me
 - Só começa a rodar quando estiver na branch `main` e com a URL/chave preenchidas no `index.html`.
 - Para testar na hora: GitHub → aba **Actions** → **Manter Supabase acordado** → **Run workflow**.
 - Se algum dia pausar mesmo assim, nenhum dado se perde: abra o projeto no Supabase e clique em **Restore**.
+
+---
+
+## Protótipo para testar (sem Supabase)
+
+`demo/mira-demo.html` é uma cópia do site que funciona sem internet: contas e dados ficam só no navegador de quem testa, e já vem com alunos de exemplo e um botão para entrar como professora. Ele é gerado a partir do `index.html`:
+
+```bash
+python3 demo/build_demo.py
+```
