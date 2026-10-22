@@ -74,6 +74,9 @@ tbody tr td{border-bottom:1px solid var(--line)}
 .simdate{color:var(--muted);font-size:12.5px}
 .tot{font-weight:700}
 .pct{font-weight:700;color:var(--terra)}
+.cpct{display:block;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.cpct.low{color:var(--terra);font-weight:700}
+#board tfoot td{font-weight:700;border-top:2px solid var(--line)}
 .rm{cursor:pointer;color:var(--muted);border:none;background:none;font-size:18px;line-height:1;padding:0 6px}
 .rm:hover{color:var(--terra)}
 /* todo */
@@ -679,14 +682,21 @@ function motiv(){
 function state_hasClassified(){return S.cls.some(c=>KNOWLEDGE.includes(c.tipo));}
 
 /* ---------- BOARD ---------- */
+function boardCell(ac,q){const p=Math.round(ac/q*100);return "<td>"+ac+"/"+q+"<span class='cpct"+(p<60?" low":"")+"'>"+p+"%</span></td>";}
 function buildBoard(){
  const t=$('board');
  if(!SIMS.length){t.innerHTML="<tbody><tr><td class='empty' style='padding:6px 2px'>Nenhum simulado ainda"+(RO?".":" — adicione o primeiro na seção abaixo.")+"</td></tr></tbody>";return;}
  let h="<thead><tr><th>Simulado</th>";AREAS.forEach(a=>h+="<th>"+esc(a)+"</th>");h+="<th>Total</th><th>%</th><th></th></tr></thead><tbody>";
  SIMS.forEach((s,i)=>{let tq=0,ta=0;h+="<tr><td><span class='simname'>"+esc(s.name)+"</span><br><span class='simdate'>"+esc(s.date)+"</span></td>";
-  AREAS.forEach(a=>{const c=s.a[a];if(c&&c[0]){tq+=c[0];ta+=c[1];h+="<td>"+c[1]+"/"+c[0]+"</td>"}else h+="<td>—</td>"});
+  AREAS.forEach(a=>{const c=s.a[a];if(c&&c[0]){tq+=c[0];ta+=c[1];h+=boardCell(c[1],c[0]);}else h+="<td>—</td>"});
   h+="<td class='tot'>"+ta+"/"+tq+"</td><td class='pct'>"+(tq?Math.round(ta/tq*100):0)+"%</td><td><button class='rm' data-rm='"+i+"' title='Remover'>×</button></td></tr>"});
- h+="</tbody>";t.innerHTML=h;
+ h+="</tbody>";
+ if(SIMS.length>1){ // soma de todos os simulados, área por área
+  let tq=0,ta=0;h+="<tfoot><tr><td>Todos os simulados</td>";
+  AREAS.forEach(a=>{let q=0,ac=0;SIMS.forEach(s=>{const c=s.a[a];if(c&&c[0]){q+=c[0];ac+=c[1];}});tq+=q;ta+=ac;h+=q?boardCell(ac,q):"<td>—</td>";});
+  h+="<td class='tot'>"+ta+"/"+tq+"</td><td class='pct'>"+(tq?Math.round(ta/tq*100):0)+"%</td><td></td></tr></tfoot>";
+ }
+ t.innerHTML=h;
  t.querySelectorAll('[data-rm]').forEach(b=>b.addEventListener('click',async()=>{
   if(RO)return;const s=SIMS[+b.dataset.rm];
   if(!await ask('Remover o simulado "'+s.name+'" do placar?\n\nOs erros que você já classificou continuam na fila.','Remover'))return;
