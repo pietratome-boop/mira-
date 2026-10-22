@@ -29,6 +29,11 @@
    [{area:'Química',tema:'Equilíbrio químico',tipo:'conteudo',sub:null},{area:'Biologia',tema:'Ecologia',tipo:'conteudo',sub:null},
     {area:'Matemática',tema:'Trigonometria',tipo:'aplicacao',sub:null}],{},9);
   add('demo-bia','Beatriz (exemplo)','beatriz@exemplo.com',[{name:'ENEM',date:'2026-11-08'}],false,[],[],{},2);
+  d.student_data.find(x=>x.user_id==='demo-julia').state.anuais=[
+   {prova:'ENEM',ano:'2024',v:{ling:612.4,hum:598.0,nat:574.8,mat:655.1,red:760}},
+   {prova:'ENEM',ano:'2025',v:{ling:641.2,hum:633.5,nat:602.9,mat:701.6,red:840}},
+   {prova:'Einstein — Medicina',ano:'2025',v:{obj:22,disc:9.5,red:14.2,col:5120}},
+   {prova:'Einstein — Medicina',ano:'2026 (meio do ano)',v:{obj:31,disc:12,red:16.4}}];
   put(d);return d;
  }
  function db(){return load()||seed();}

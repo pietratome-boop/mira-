@@ -34,6 +34,11 @@
    [{area:'Química',tema:'Equilíbrio químico',tipo:'conteudo',sub:null},{area:'Biologia',tema:'Ecologia',tipo:'conteudo',sub:null},
     {area:'Matemática',tema:'Trigonometria',tipo:'aplicacao',sub:null}],{},9);
   add('demo-bia','Beatriz (exemplo)','beatriz@exemplo.com',[{name:'ENEM',date:'2026-11-08'}],false,[],[],{},2);
+  d.student_data.find(x=>x.user_id==='demo-julia').state.anuais=[
+   {prova:'ENEM',ano:'2024',v:{ling:612.4,hum:598.0,nat:574.8,mat:655.1,red:760}},
+   {prova:'ENEM',ano:'2025',v:{ling:641.2,hum:633.5,nat:602.9,mat:701.6,red:840}},
+   {prova:'Einstein — Medicina',ano:'2025',v:{obj:22,disc:9.5,red:14.2,col:5120}},
+   {prova:'Einstein — Medicina',ano:'2026 (meio do ano)',v:{obj:31,disc:12,red:16.4}}];
   put(d);return d;
  }
  function db(){return load()||seed();}
@@ -253,7 +258,18 @@ button.opt.sabia.on{background:var(--terra);border-color:var(--terra);color:#fff
 .left-count{font-size:13.5px;color:var(--muted)}
 /* sim form */
 .simhead{display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap}
-.simhead input{flex:1;min-width:150px}
+.simhead input,.simhead select{flex:1;min-width:150px}
+/* provas oficiais ano a ano */
+.anprova{margin-top:18px}
+.anprova:first-child{margin-top:0}
+.anprova h3{font-family:var(--serif);font-weight:600;font-size:18px;margin:0 0 6px;padding:6px 12px;border-radius:8px;background:var(--surface-2);border-left:4px solid var(--terra)}
+.antable{min-width:0;width:auto}
+.antable th,.antable td{font-variant-numeric:tabular-nums;padding:8px 14px}
+.antable td:first-child{color:var(--muted)}
+.antable tr.calc td{font-weight:700;color:var(--ink)}
+.antable th .rm{font-size:15px;padding:0 0 0 4px}
+.anualform{margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+.simcell input.an{width:100%;padding:8px 6px;text-align:center;font-family:var(--sans);font-size:15px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px}
 .simgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px}
 .simcell{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:11px 12px}
 .simcell label{display:block;font-size:13px;font-weight:700;margin:0 0 8px}
@@ -450,6 +466,19 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
       <div class="board-scroll"><table id="board"></table></div>
     </section>
 
+    <section id="anual">
+      <p class="eyebrow">Provas oficiais · ano a ano</p>
+      <h2>Seu desempenho nos vestibulares</h2>
+      <p class="sub">As notas das provas de verdade que você já prestou, lado a lado por ano.</p>
+      <div id="anualtabs"></div>
+      <div class="anualform rw">
+        <label class="f" style="margin-top:0">Lançar ou corrigir um resultado</label>
+        <div class="simhead"><select id="anprova" aria-label="Vestibular"></select><select id="anano" aria-label="Ano"></select></div>
+        <div class="simgrid" id="anfields"></div>
+        <div class="cta"><button class="addbtn" id="anadd">Salvar resultado</button><span class="err" id="anerr"></span><span class="ok-msg" id="anok"></span></div>
+      </div>
+    </section>
+
     <section class="sage">
       <p class="eyebrow">Sua fila de revisão</p>
       <h2>Revise nesta ordem — e vá marcando</h2>
@@ -528,10 +557,10 @@ let S=emptyState();
 let RO=false;                      // professora vendo o painel de um aluno (somente leitura)
 let CLASS=[];                      // turma carregada no painel da professora
 
-function emptyState(){return{cls:[],incid:{},hist:{}};}
+function emptyState(){return{cls:[],incid:{},hist:{},anuais:[]};}
 function normState(s){
  s=s||{};
- const o={cls:Array.isArray(s.cls)?s.cls:[],incid:s.incid||{},hist:s.hist||{}};
+ const o={cls:Array.isArray(s.cls)?s.cls:[],incid:s.incid||{},hist:s.hist||{},anuais:Array.isArray(s.anuais)?s.anuais:[]};
  if(s.done)Object.keys(s.done).forEach(k=>{if(s.done[k]!=null&&!o.hist[k])o.hist[k]=[{at:s.done[k],date:null}];});
  return o;
 }
@@ -867,6 +896,87 @@ function renderTodo(){
  }else al.innerHTML='';
 }
 
+
+/* ---------- PROVAS OFICIAIS · ANO A ANO ---------- */
+// Linhas de cada vestibular: [chave, rótulo] para notas digitadas, [chave, rótulo, conta] para as calculadas.
+function anSum(v,ks){const xs=ks.map(k=>v[k]).filter(x=>x!=null);return xs.length?xs.reduce((a,b)=>a+b,0):null;}
+function anAvg(v,ks){const xs=ks.map(k=>v[k]).filter(x=>x!=null);return xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:null;}
+const ANUAL={
+ "ENEM":[["ling","Linguagens"],["hum","Ciências Humanas"],["nat","Ciências da Natureza"],["mat","Matemática"],["red","Redação"],
+  ["_media","Média simples",v=>anAvg(v,["ling","hum","nat","mat","red"])]],
+ "Fuvest (USP)":[["acertos","Acertos (1ª fase, de 90)"],["_pct","Porcentagem (%)",v=>v.acertos==null?null:v.acertos/90*100],["fase2","Nota 2ª fase"]],
+ "Einstein — Medicina":[["obj","Prova Objetiva"],["disc","Prova Discursiva"],["red","Redação"],
+  ["_tot","Total (0-100)",v=>anSum(v,["obj","disc","red"])],["col","Colocação"]],
+ "Unifesp — Medicina":[["enem","Enem padronizado"],["d1","Dia 1 (0-25)"],["d2","Dia 2 (0-25)"],["final","Nota final"],["col","Colocação"]]
+};
+const ANUAL_PADRAO=[["acertos","Acertos"],["nota","Nota final"],["col","Colocação"]];
+function anRows(prova){return ANUAL[prova]||ANUAL_PADRAO;}
+function anYears(){const y=new Date().getFullYear(),out=[];for(let i=y+1;i>=2020;i--){out.push(String(i));out.push(i+' (meio do ano)');}return out;}
+function anKey(ano){return (parseInt(ano,10)||0)+(/meio/.test(ano)?0.5:0);}
+function anFmt(x,k){if(x==null||isNaN(x))return '—';if(k==='col')return Math.round(x).toLocaleString('pt-BR');return (+x).toLocaleString('pt-BR',{maximumFractionDigits:2});}
+function anNum(t){t=String(t||'').trim().replace(/\s/g,'');if(!t)return null;if(/^\d{1,3}(\.\d{3})+$/.test(t))t=t.replace(/\./g,'');return parseFloat(t.replace(',','.'));}
+function renderAnual(){
+ const box=$('anualtabs');const list=(S.anuais||[]);
+ const provas=EXAMS.map(e=>e.name).filter(n=>list.some(x=>x.prova===n));
+ list.forEach(x=>{if(provas.indexOf(x.prova)<0)provas.push(x.prova);});
+ if(!provas.length){box.innerHTML="<p class='empty'>Nenhum resultado lançado ainda."+(RO?"":" Use o formulário abaixo para guardar as notas de cada ano.")+"</p>";}
+ else box.innerHTML=provas.map(pv=>{
+  const cols=list.filter(x=>x.prova===pv).sort((a,b)=>anKey(a.ano)-anKey(b.ano));
+  const rows=anRows(pv);
+  let h="<div class='anprova'><h3>"+esc(pv)+"</h3><div class='board-scroll'><table class='antable'><thead><tr><th></th>"+
+   cols.map(c=>"<th>"+esc(c.ano)+"<button class='rm' data-anrm=\""+esc(pv+'|'+c.ano)+"\" title='Apagar este ano'>×</button></th>").join('')+"</tr></thead><tbody>";
+  rows.forEach(r=>{
+   const vals=cols.map(c=>r[2]?r[2](c.v||{}):(c.v||{})[r[0]]);
+   if(!r[2]&&vals.every(x=>x==null))return; // linha sem nenhum valor
+   h+="<tr"+(r[2]?" class='calc'":"")+"><td>"+esc(r[1])+"</td>"+vals.map(x=>"<td>"+anFmt(x,r[0])+"</td>").join('')+"</tr>";
+  });
+  return h+"</tbody></table></div></div>";
+ }).join('');
+ box.querySelectorAll('[data-anrm]').forEach(b=>b.addEventListener('click',async()=>{
+  if(RO)return;const [pv,ano]=b.dataset.anrm.split('|');
+  if(!await ask('Apagar o resultado de '+pv+' em '+ano+'?','Apagar'))return;
+  S.anuais=S.anuais.filter(x=>!(x.prova===pv&&x.ano===ano));saveAndRender();buildAnualForm(true);
+ }));
+}
+function buildAnualForm(keep){
+ const pSel=$('anprova'),aSel=$('anano');
+ const prevP=keep?pSel.value:'',prevA=keep?aSel.value:'';
+ const mine=(profile&&profile.exams||[]).map(e=>e.name);
+ const order=mine.concat(EXAMS.map(e=>e.name).filter(n=>mine.indexOf(n)<0));
+ pSel.innerHTML=order.map(n=>"<option value=\""+esc(n)+"\">"+esc(n)+"</option>").join('');
+ aSel.innerHTML=anYears().map(y=>"<option value=\""+y+"\">"+y+"</option>").join('');
+ if(prevP)pSel.value=prevP;
+ aSel.value=prevA||String(new Date().getFullYear());
+ fillAnualFields();
+}
+function fillAnualFields(){
+ const pv=$('anprova').value,ano=$('anano').value;
+ const cur=(S.anuais||[]).find(x=>x.prova===pv&&x.ano===ano);
+ $('anfields').innerHTML=anRows(pv).filter(r=>!r[2]).map(r=>{
+  const v=cur&&cur.v&&cur.v[r[0]]!=null?String(cur.v[r[0]]).replace('.',','):'';
+  return "<div class='simcell'><label for='an_"+r[0]+"'>"+esc(r[1])+"</label><input class='an' type='text' inputmode='decimal' id='an_"+r[0]+"' data-k='"+r[0]+"' value=\""+esc(v)+"\"></div>";
+ }).join('');
+ $('anadd').textContent=cur?'Atualizar resultado':'Salvar resultado';
+ $('anerr').textContent='';$('anok').textContent='';
+}
+$('anprova').addEventListener('change',fillAnualFields);
+$('anano').addEventListener('change',fillAnualFields);
+$('anadd').addEventListener('click',()=>{
+ if(RO)return;
+ const pv=$('anprova').value,ano=$('anano').value,err=$('anerr');err.textContent='';$('anok').textContent='';
+ const v={};let any=false;
+ for(const inp of $('anfields').querySelectorAll('input[data-k]')){
+  if(!inp.value.trim())continue;
+  const n=anNum(inp.value);
+  if(isNaN(n)){err.textContent='Confira o valor de "'+inp.previousElementSibling.textContent+'".';return;}
+  v[inp.dataset.k]=n;any=true;
+ }
+ if(!any){err.textContent='Preencha ao menos uma nota.';return;}
+ S.anuais=(S.anuais||[]).filter(x=>!(x.prova===pv&&x.ano===ano));
+ S.anuais.push({prova:pv,ano,v});
+ saveAndRender();fillAnualFields();$('anok').textContent='Salvo: '+pv+' · '+ano+'.';
+});
+
 /* ---------- ADD SIMULADO ---------- */
 function buildSimForm(){
  const f=$('simform');
@@ -1112,10 +1222,10 @@ $('demo-reset').addEventListener('click',async()=>{
 });
 
 /* ---------- ORQUESTRAÇÃO ---------- */
-function renderAll(){buildBoard();buildAreaSelect();renderTodo();renderHero();}
+function renderAll(){buildBoard();renderAnual();buildAreaSelect();renderTodo();renderHero();}
 function saveAndRender(){save();renderAll();}
 function showApp(){
- show('app');buildSimForm();renderAll();
+ show('app');buildSimForm();buildAnualForm();renderAll();
  $('importold').style.display=(!RO&&legacyData())?'inline-block':'none';
 }
 function loadingError(msg){
