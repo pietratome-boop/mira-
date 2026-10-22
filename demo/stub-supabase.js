@@ -1,6 +1,7 @@
 /* Supabase de mentira para o protótipo: guarda contas e dados só neste navegador.
    Imita as partes da API que o Mira usa (auth + from().select/update/insert/upsert),
-   inclusive a regra de que aluno só vê os próprios dados e a professora vê todos. */
+   inclusive a regra de que aluno só vê os próprios dados e o tutor vê todos.
+   Código de tutor do protótipo: tutor123. */
 (function(){
  const K='mira_demo_db_v1';
  let mem=null;
@@ -14,7 +15,7 @@
    d.profiles.push({id,email,name,exams,is_teacher:!!teacher,created_at:days(ago+3)});
    d.student_data.push({user_id:id,sims:sims||[],state:{cls:cls||[],incid:{},hist:hist||{}},updated_at:days(ago)});
   }
-  add('demo-prof','Professora (exemplo)','professora@exemplo.com',[],true,[],[],{},0);
+  add('demo-prof','Tutora (exemplo)','tutora@exemplo.com',[],true,[],[],{},0);
   add('demo-julia','Júlia (exemplo)','julia@exemplo.com',[{name:'ENEM',date:'2026-11-08'},{name:'Einstein — Medicina',date:''}],false,
    [{date:'05/set',name:'Simulado ENEM 1',a:{'Biologia':[15,9],'Química':[15,7],'Física':[15,8],'Matemática':[45,27],'Português':[40,31]}},
     {date:'19/set',name:'Einstein 2025',a:{'Biologia':[5,3],'Química':[5,2],'Física':[5,3],'Matemática':[10,6],'Português':[10,9]}}],
@@ -68,7 +69,7 @@
  }
  /* Compartilhamento: manda as contas de teste deste navegador para o armazenamento
     do artefato (testes/<id de quem testa>), e traz as dos outros navegadores para
-    o painel da professora. Sem o armazenamento, tudo segue funcionando só aqui. */
+    o painel do tutor. Sem o armazenamento, tudo segue funcionando só aqui. */
  const share={
   cap:null,doc:null,remote:{},timer:null,busy:false,again:false,state:'off',
   setState(st){this.state=st;window.dispatchEvent(new CustomEvent('mira-share',{detail:st}));},
@@ -105,6 +106,11 @@
 
  window.supabase={createClient(){return{
   from:t=>new Q(t),
+  async rpc(fn,args){
+   const d=db();const me=d.session&&d.session.user.id;
+   if(fn!=='claim_tutor'||!me)return fail('function not found');
+   if(!args||String(args.code||'').trim()!=='tutor123')return ok(false);
+   d.profiles.find(p=>p.id===me).is_teacher=true;put(d);return ok(true);},
   auth:{
    onAuthStateChange(f){listeners.push(f);setTimeout(()=>f('INITIAL_SESSION',db().session),0);return{data:{subscription:{unsubscribe(){}}}};},
    async signUp({email,password,options}){
@@ -113,7 +119,7 @@
     if(String(password).length<6)return{data:{},error:{message:'Password should be at least 6 characters'}};
     const name=(options&&options.data&&options.data.name)||'';
     const u={id:uid(),email,password,user_metadata:{name}};d.users.push(u);
-    d.profiles.push({id:u.id,email,name,exams:[],is_teacher:false,created_at:new Date().toISOString()});
+    d.profiles.push({id:u.id,email,name,exams:[],is_teacher:(options&&options.data&&options.data.tutor_code)==='tutor123',created_at:new Date().toISOString()});
     d.student_data.push({user_id:u.id,sims:[],state:{},updated_at:new Date().toISOString()});
     d.session=sess(u);put(d);emit('SIGNED_IN',d.session);return{data:{session:d.session,user:u},error:null};
    },

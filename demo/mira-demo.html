@@ -5,7 +5,8 @@
 <script>
 /* Supabase de mentira para o protótipo: guarda contas e dados só neste navegador.
    Imita as partes da API que o Mira usa (auth + from().select/update/insert/upsert),
-   inclusive a regra de que aluno só vê os próprios dados e a professora vê todos. */
+   inclusive a regra de que aluno só vê os próprios dados e o tutor vê todos.
+   Código de tutor do protótipo: tutor123. */
 (function(){
  const K='mira_demo_db_v1';
  let mem=null;
@@ -19,7 +20,7 @@
    d.profiles.push({id,email,name,exams,is_teacher:!!teacher,created_at:days(ago+3)});
    d.student_data.push({user_id:id,sims:sims||[],state:{cls:cls||[],incid:{},hist:hist||{}},updated_at:days(ago)});
   }
-  add('demo-prof','Professora (exemplo)','professora@exemplo.com',[],true,[],[],{},0);
+  add('demo-prof','Tutora (exemplo)','tutora@exemplo.com',[],true,[],[],{},0);
   add('demo-julia','Júlia (exemplo)','julia@exemplo.com',[{name:'ENEM',date:'2026-11-08'},{name:'Einstein — Medicina',date:''}],false,
    [{date:'05/set',name:'Simulado ENEM 1',a:{'Biologia':[15,9],'Química':[15,7],'Física':[15,8],'Matemática':[45,27],'Português':[40,31]}},
     {date:'19/set',name:'Einstein 2025',a:{'Biologia':[5,3],'Química':[5,2],'Física':[5,3],'Matemática':[10,6],'Português':[10,9]}}],
@@ -73,7 +74,7 @@
  }
  /* Compartilhamento: manda as contas de teste deste navegador para o armazenamento
     do artefato (testes/<id de quem testa>), e traz as dos outros navegadores para
-    o painel da professora. Sem o armazenamento, tudo segue funcionando só aqui. */
+    o painel do tutor. Sem o armazenamento, tudo segue funcionando só aqui. */
  const share={
   cap:null,doc:null,remote:{},timer:null,busy:false,again:false,state:'off',
   setState(st){this.state=st;window.dispatchEvent(new CustomEvent('mira-share',{detail:st}));},
@@ -110,6 +111,11 @@
 
  window.supabase={createClient(){return{
   from:t=>new Q(t),
+  async rpc(fn,args){
+   const d=db();const me=d.session&&d.session.user.id;
+   if(fn!=='claim_tutor'||!me)return fail('function not found');
+   if(!args||String(args.code||'').trim()!=='tutor123')return ok(false);
+   d.profiles.find(p=>p.id===me).is_teacher=true;put(d);return ok(true);},
   auth:{
    onAuthStateChange(f){listeners.push(f);setTimeout(()=>f('INITIAL_SESSION',db().session),0);return{data:{subscription:{unsubscribe(){}}}};},
    async signUp({email,password,options}){
@@ -118,7 +124,7 @@
     if(String(password).length<6)return{data:{},error:{message:'Password should be at least 6 characters'}};
     const name=(options&&options.data&&options.data.name)||'';
     const u={id:uid(),email,password,user_metadata:{name}};d.users.push(u);
-    d.profiles.push({id:u.id,email,name,exams:[],is_teacher:false,created_at:new Date().toISOString()});
+    d.profiles.push({id:u.id,email,name,exams:[],is_teacher:(options&&options.data&&options.data.tutor_code)==='tutor123',created_at:new Date().toISOString()});
     d.student_data.push({user_id:u.id,sims:[],state:{},updated_at:new Date().toISOString()});
     d.session=sess(u);put(d);emit('SIGNED_IN',d.session);return{data:{session:d.session,user:u},error:null};
    },
@@ -321,13 +327,13 @@ input[type=email],input[type=password],input[type=search]{width:100%;font-family
 .hint{font-size:13px;color:var(--muted);margin-top:14px;line-height:1.5}
 .sync{font-size:13px;color:var(--muted)}
 .sync.bad{color:var(--terra);font-weight:600}
-/* modo somente leitura (professora vendo aluno) */
+/* modo somente leitura (tutor vendo aluno) */
 .ro-banner{display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--terra-soft);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-top:22px;font-size:14.5px}
 .ro .ro-banner{display:flex}
 .ro .rw{display:none!important}
 .ro .check,.ro .rm,.ro .undo{visibility:hidden}
 .ro .incid button{pointer-events:none}
-/* painel da professora */
+/* painel do tutor */
 .tstats{display:flex;gap:28px;flex-wrap:wrap;margin:4px 0 18px}
 .tstats div{font-size:13px;color:var(--muted)}
 .tstats b{display:block;font-family:var(--serif);font-size:30px;font-weight:600;color:var(--ink);line-height:1.1}
@@ -337,6 +343,11 @@ input[type=email],input[type=password],input[type=search]{width:100%;font-family
 #tlist .simname{white-space:nowrap}
 .tfoc{font-size:13px;color:var(--muted);max-width:260px}
 .low{color:var(--terra);font-weight:700}
+.checkline{display:flex;align-items:center;gap:10px;margin-top:16px;font-size:15px;cursor:pointer}
+.checkline input{width:18px;height:18px;accent-color:var(--teal);flex:none}
+.tutorbox{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:22px;font-size:14.5px}
+.tutorbox .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.tutorbox .row input{flex:1;min-width:160px}
 /* confirmação desenhada na página */
 .askbox{position:fixed;inset:0;background:rgba(10,20,16,.5);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
 .askbox[hidden]{display:none}
@@ -356,11 +367,11 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 </style>
 <div class="wrap">
   <div class="demobar" id="demobar">
-    <p><b>Protótipo para teste.</b> Tudo funciona como no site de verdade. Os alunos abaixo são de exemplo (senha de todos: <b>mira123</b>). Crie sua própria conta em "Criar conta" para testar como um aluno novo.</p>
+    <p><b>Protótipo para teste.</b> Tudo funciona como no site de verdade. Os alunos abaixo são de exemplo (senha de todos: <b>mira123</b>). Para testar o cadastro de tutor, use o código <b>tutor123</b>.</p>
     <p class="sharenote" id="sharenote">As contas e os dados que você criar ficam neste navegador.</p>
     <div class="demobtns">
       <button id="demo-aluno">Entrar como aluna (Júlia)</button>
-      <button id="demo-prof" class="alt">Entrar como professora</button>
+      <button id="demo-prof" class="alt">Entrar como tutora</button>
       <button id="demo-reset" class="quiet">Recomeçar o teste</button>
     </div>
   </div>
@@ -401,9 +412,16 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
       <input type="email" id="au-email" placeholder="voce@email.com" autocomplete="email">
       <label class="f" for="au-pass">Senha</label>
       <input type="password" id="au-pass" placeholder="mínimo 6 caracteres" autocomplete="current-password">
+      <div id="au-tutorwrap" style="display:none">
+        <label class="checkline"><input type="checkbox" id="au-istutor"> Sou tutor(a) do cursinho</label>
+        <div id="au-codewrap" style="display:none">
+          <label class="f" for="au-code">Código de tutor</label>
+          <input type="text" id="au-code" placeholder="o código que a coordenação te passou" autocomplete="off">
+        </div>
+      </div>
       <div class="cta"><button class="primary" id="au-go">Entrar</button><button class="linkbtn" id="au-forgot">esqueci minha senha</button></div>
       <p class="err" id="au-err"></p><p class="ok-msg" id="au-ok"></p>
-      <p class="hint" id="au-privacy" style="display:none">Ao criar a conta, a coordenação do cursinho passa a ver seu progresso (simulados, acertos e temas da fila) para poder te acompanhar. Ninguém além dela e de você vê esses dados.</p>
+      <p class="hint" id="au-privacy" style="display:none">Ao criar a conta, os tutores do cursinho passam a ver seu progresso (simulados, acertos e temas da fila) para poder te acompanhar. Só os tutores e você veem esses dados.</p>
     </section>
   </div>
 
@@ -424,6 +442,11 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
       <p class="eyebrow">Antes de começar</p>
       <h2>Quem é você e o que vai prestar</h2>
       <p class="sub">Isso monta o seu painel. As provas que você escolher direcionam a incidência de cada tema na sua fila.</p>
+      <div class="tutorbox" id="ob-tutor">
+        <b>É tutor(a), e não aluno?</b> Digite o código de tutor para ir ao painel da turma.
+        <div class="row"><input type="text" id="ob-code" placeholder="Código de tutor" autocomplete="off" aria-label="Código de tutor"><button class="primary" id="ob-codego">Entrar como tutor(a)</button></div>
+        <p class="err" id="ob-codeerr" style="margin:8px 0 0"></p>
+      </div>
       <label class="f" for="obname">Seu nome</label>
       <input type="text" id="obname" placeholder="ex: Ana">
       <label class="f">Provas que você vai prestar</label>
@@ -433,7 +456,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
     </section>
   </div>
 
-  <!-- PAINEL DA PROFESSORA -->
+  <!-- PAINEL DO TUTOR -->
   <div id="v-teacher" class="view" style="display:none">
     <section>
       <p class="eyebrow">Painel da turma</p>
@@ -551,11 +574,11 @@ const SUPABASE_ANON_KEY='sb_publishable_7GMbN5BueqAdIetjHZ-B9w_TzJOJ53q';
 /* ---------- ESTADO ---------- */
 let sb=null;
 let ME={user:null,profile:null};   // quem está logado
-let profile=null;                  // perfil em uso na tela (o próprio, ou o do aluno aberto pela professora)
+let profile=null;                  // perfil em uso na tela (o próprio, ou o do aluno aberto pelo tutor)
 let SIMS=[];
 let S=emptyState();
-let RO=false;                      // professora vendo o painel de um aluno (somente leitura)
-let CLASS=[];                      // turma carregada no painel da professora
+let RO=false;                      // tutor vendo o painel de um aluno (somente leitura)
+let CLASS=[];                      // turma carregada no painel do tutor
 
 function emptyState(){return{cls:[],incid:{},hist:{},anuais:[]};}
 function normState(s){
@@ -762,9 +785,28 @@ function showOnboarding(){
  if(profile&&profile.exams)profile.exams.forEach(pe=>{const m=EXAMS.find(x=>x.name===pe.name);if(m)obSel[m.id]={checked:true,date:pe.date||''};});
  $('obname').value=profile?profile.name:'';
  renderObExams();
+ $('ob-tutor').style.display=(profile&&profile.exams&&profile.exams.length)?'none':'block';
+ $('ob-code').value='';$('ob-codeerr').textContent=wantTutor?'O código de tutor não conferiu, então sua conta foi criada como aluno. Digite o código certo aqui.':'';
+ wantTutor=false;
  show('onboarding');
 }
 $('editprofile').addEventListener('click',showOnboarding);
+async function claimTutor(code){
+ const {data,error}=await sb.rpc('claim_tutor',{code});
+ if(error){console.error(error);return 'erro';}
+ return data===true?'ok':'nao';
+}
+$('ob-codego').addEventListener('click',async()=>{
+ const code=$('ob-code').value.trim(),err=$('ob-codeerr');err.textContent='';
+ if(!code){err.textContent='Digite o código de tutor.';return;}
+ const btn=$('ob-codego');btn.disabled=true;
+ const res=await claimTutor(code);btn.disabled=false;
+ if(res==='erro'){err.textContent='Não consegui conferir o código. Confira sua internet e tente de novo.';return;}
+ if(res==='nao'){err.textContent='Código de tutor incorreto. Confira com a coordenação do cursinho.';return;}
+ const nm=$('obname').value.trim();if(nm&&nm!==(ME.profile.name||''))await saveProfile({name:nm});
+ ME.profile.is_teacher=true;profile=ME.profile;$('ubteacher').style.display='inline-block';
+ show('teacher');loadClass();
+});
 
 /* ---------- HERO ---------- */
 function daysUntil(ds){const d=new Date(ds+'T00:00:00');const n=new Date();n.setHours(0,0,0,0);return Math.round((d-n)/86400000);}
@@ -1084,7 +1126,7 @@ $('reset').addEventListener('click',async()=>{
  SIMS=[];S=emptyState();saveAndRender();
 });
 
-/* ---------- PAINEL DA PROFESSORA ---------- */
+/* ---------- PAINEL DO TUTOR ---------- */
 function withStudent(st,fn){
  const b=[profile,SIMS,S];profile=st.profile;SIMS=st.sims;S=st.state;
  try{return fn();}finally{profile=b[0];SIMS=b[1];S=b[2];}
@@ -1149,12 +1191,15 @@ function setAuthMode(m){
  document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===m));
  $('au-namewrap').style.display=m==='up'?'block':'none';
  $('au-privacy').style.display=m==='up'?'block':'none';
+ $('au-tutorwrap').style.display=m==='up'?'block':'none';
  $('au-forgot').style.display=m==='in'?'inline':'none';
  $('au-go').textContent=m==='up'?'Criar conta':'Entrar';
  $('au-pass').autocomplete=m==='up'?'new-password':'current-password';
  $('au-err').textContent='';$('au-ok').textContent='';
 }
 document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>setAuthMode(b.dataset.tab)));
+$('au-istutor').addEventListener('change',function(){$('au-codewrap').style.display=this.checked?'block':'none';$('au-privacy').style.display=this.checked?'none':'block';});
+let wantTutor=false; // marcou "Sou tutor(a)" no cadastro: avisa se o código não conferir
 function authMsg(e){
  const m=(e&&e.message)||String(e);
  if(/invalid login credentials/i.test(m))return 'E-mail ou senha incorretos.';
@@ -1175,7 +1220,11 @@ async function doAuth(){
  const btn=$('au-go');btn.disabled=true;
  try{
   if(authMode==='up'){
-   const {data,error}=await sb.auth.signUp({email,password:pass,options:{data:{name}}});
+   const isT=$('au-istutor').checked,code=$('au-code').value.trim();
+   if(isT&&!code){err.textContent='Digite o código de tutor.';return;}
+   const meta={name};if(isT)meta.tutor_code=code;
+   wantTutor=isT;
+   const {data,error}=await sb.auth.signUp({email,password:pass,options:{data:meta}});
    if(error){err.textContent=authMsg(error);return;}
    if(!data.session){setAuthMode('in');$('au-ok').textContent='Conta criada! Confirme pelo e-mail que enviamos e depois entre aqui.';}
   }else{
@@ -1208,11 +1257,11 @@ $('ublogout').addEventListener('click',async()=>{await flush();await sb.auth.sig
 
 /* ---------- BOTÕES DO PROTÓTIPO ---------- */
 $('demo-aluno').addEventListener('click',async()=>{await flush();window.__miraDemo.loginAs('julia@exemplo.com');});
-$('demo-prof').addEventListener('click',async()=>{await flush();window.__miraDemo.loginAs('professora@exemplo.com');});
+$('demo-prof').addEventListener('click',async()=>{await flush();window.__miraDemo.loginAs('tutora@exemplo.com');});
 window.addEventListener('mira-remote',()=>{if(ME.profile&&ME.profile.is_teacher&&!RO&&$('v-teacher').style.display!=='none')loadClass();});
 window.addEventListener('mira-share',e=>{const n=$('sharenote');const st=e.detail;
  n.classList.toggle('on',st==='on');
- n.textContent=st==='on'?'Seus testes estão sendo compartilhados com a dona do protótipo: ela vê suas contas no painel da professora.'
+ n.textContent=st==='on'?'Seus testes estão sendo compartilhados com a dona do protótipo: ela vê suas contas no painel da turma.'
   :st==='readonly'?'Seu acesso a este link é só de leitura: seus testes ficam neste navegador e não são compartilhados.'
   :st==='error'?'Não consegui compartilhar seus testes agora; eles continuam salvos neste navegador.'
   :'As contas e os dados que você criar ficam neste navegador e são compartilhados com a dona do protótipo.';});
@@ -1255,7 +1304,8 @@ async function onAuth(ev,session){
  if(ev==='PASSWORD_RECOVERY'){recovering=true;show('recovery');return;}
  if(!session){
   ME={user:null,profile:null};loadedFor=null;RO=false;profile=null;SIMS=[];S=emptyState();dirty=false;
-  $('userbar').style.display='none';setAuthMode('in');show('auth');return;
+  $('userbar').style.display='none';$('au-istutor').checked=false;$('au-code').value='';$('au-codewrap').style.display='none';$('au-pass').value='';
+  setAuthMode('in');show('auth');return;
  }
  if(recovering||loadedFor===session.user.id)return; // renovação de token etc.
  loadedFor=session.user.id;
