@@ -789,7 +789,7 @@ function anSum(v,ks){const xs=ks.map(k=>v[k]).filter(x=>x!=null);return xs.lengt
 function anAvg(v,ks){const xs=ks.map(k=>v[k]).filter(x=>x!=null);return xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:null;}
 const ANUAL={
  "ENEM":[["ling","Linguagens"],["hum","Ciências Humanas"],["nat","Ciências da Natureza"],["mat","Matemática"],["red","Redação"],
-  ["_media","Média simples",v=>anAvg(v,["ling","hum","nat","mat","red"])]],
+  ["_media","Média simples (sem redação)",v=>anAvg(v,["ling","hum","nat","mat"])]],
  "Fuvest (USP)":[["acertos","Acertos (1ª fase, de 90)"],["_pct","Porcentagem (%)",v=>v.acertos==null?null:v.acertos/90*100],["fase2","Nota 2ª fase"]],
  "Einstein — Medicina":[["obj","Prova Objetiva"],["disc","Prova Discursiva"],["red","Redação"],
   ["_tot","Total (0-100)",v=>anSum(v,["obj","disc","red"])],["col","Colocação"]],
