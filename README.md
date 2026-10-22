@@ -1,6 +1,6 @@
 # Mira
 
-Painel de estudos para vestibular: cada aluno lança os simulados, classifica os erros e recebe uma **fila de revisão** priorizada. A professora tem um **painel da turma** com o progresso de todos.
+Painel de estudos para vestibular: cada aluno lança os simulados, classifica os erros e recebe uma **fila de revisão** priorizada. Os tutores têm um **painel da turma** com o progresso de todos.
 
 - Site: um único arquivo, `index.html`
 - Login e banco de dados: [Supabase](https://supabase.com) (plano gratuito)
@@ -44,16 +44,11 @@ Em **Authentication → URL Configuration**:
 - **Jeito rápido:** no Netlify, abra o site **miraestudos → Deploys** e arraste para lá uma pasta que contenha só o `index.html`. O arquivo precisa se chamar exatamente `index.html`.
 - **Jeito automático (recomendado):** em **Site configuration → Build & deploy → Link repository**, conecte este repositório do GitHub (branch `main`, sem comando de build, pasta de publicação `/`). A cada mudança no GitHub o site se atualiza sozinho.
 
-### 6. Virar professora
-1. Abra o site e crie a sua conta normalmente.
-2. No Supabase, em **SQL Editor**, rode (trocando pelo seu e-mail):
-   ```sql
-   update public.profiles set is_teacher = true
-   where email = 'seu-email@exemplo.com';
-   ```
-3. Recarregue o site: você cai direto no **painel da turma**.
-
-Para dar acesso a outra professora ou monitora, rode o mesmo comando com o e-mail dela.
+### 6. Acesso de tutor
+1. No **SQL Editor**, abra [`supabase/tutores.sql`](supabase/tutores.sql), troque `TROQUE-ESTE-CODIGO` pelo código de tutor que você quiser e clique em **Run**. Não salve o código de verdade no GitHub.
+2. Passe o código só para os tutores. No site, eles clicam em **Criar conta**, marcam **Sou tutor(a)** e digitam o código: a conta já abre no **painel da turma**.
+3. Quem já criou conta como aluno digita o código na tela "Antes de começar".
+4. Para trocar o código, rode de novo só a última parte do `tutores.sql` com o código novo. Quem já é tutor continua tutor.
 
 ---
 
@@ -62,9 +57,9 @@ Para dar acesso a outra professora ou monitora, rode o mesmo comando com o e-mai
 | Quem | O que vê |
 |---|---|
 | Aluno | Só o próprio painel: placar, fila de revisão, temas revisados |
-| Professora | Painel da turma com todos os alunos (% de acerto, simulados, fila, última atividade) e o painel de cada aluno em modo somente leitura |
+| Tutor(a) | Painel da turma com todos os alunos (% de acerto, simulados, fila, última atividade) e o painel de cada aluno em modo somente leitura |
 
-- A segurança fica no banco (Row Level Security): um aluno não consegue ler os dados de outro nem se promover a professora.
+- A segurança fica no banco (Row Level Security): um aluno não consegue ler os dados de outro nem virar tutor sem o código.
 - **Aluno esqueceu a senha:** ele toca em "esqueci minha senha" e recebe um link por e-mail. Se o limite de e-mails estourar, você pode redefinir a senha dele em **Supabase → Authentication → Users**.
 - **Apagar um aluno:** em **Authentication → Users**, apague o usuário. Os dados dele somem junto.
 - **Quem usou a versão antiga** (dados salvos só no navegador) vê, no rodapé do painel, o botão "Trazer dados da versão antiga deste navegador".
@@ -85,7 +80,7 @@ faz o GitHub dar uma "cutucada" no banco a cada 3 dias, então ele não pausa me
 
 ## Protótipo para testar (sem Supabase)
 
-`demo/mira-demo.html` é uma cópia do site que funciona sem internet: contas e dados ficam só no navegador de quem testa, e já vem com alunos de exemplo e um botão para entrar como professora. Ele é gerado a partir do `index.html`:
+`demo/mira-demo.html` é uma cópia do site que funciona sem internet: contas e dados ficam só no navegador de quem testa, e já vem com alunos de exemplo e um botão para entrar como tutora (código de tutor de teste: `tutor123`). Ele é gerado a partir do `index.html`:
 
 ```bash
 python3 demo/build_demo.py
