@@ -951,8 +951,15 @@ const ANUAL={
   ["_tot","Total (0-100)",v=>anSum(v,["obj","disc","red"])],["col","Colocação"]],
  "Unifesp — Medicina":[["enem","Enem padronizado"],["d1","Dia 1 (0-25)"],["d2","Dia 2 (0-25)"],["final","Nota final"],["col","Colocação"]]
 };
-const ANUAL_PADRAO=[["acertos","Acertos"],["nota","Nota final"],["col","Colocação"]];
-function anRows(prova){return ANUAL[prova]||ANUAL_PADRAO;}
+// Questões da 1ª fase quando a prova tem um número fixo; nas outras o aluno informa.
+const ANUAL_QTD={"Unicamp":72,"Unesp":90};
+function anPadrao(prova){
+ const qtd=ANUAL_QTD[prova];
+ return [["acertos","Acertos"],["total",qtd?"Total de questões (padrão: "+qtd+")":"Total de questões"],
+  ["_pct","Porcentagem (%)",v=>{const t=v.total||qtd;return v.acertos==null||!t?null:v.acertos/t*100;}],
+  ["nota","Nota final"],["col","Colocação"]];
+}
+function anRows(prova){return ANUAL[prova]||anPadrao(prova);}
 function anYears(){const y=new Date().getFullYear(),out=[];for(let i=y+1;i>=2020;i--){out.push(String(i));out.push(i+' (meio do ano)');}return out;}
 function anKey(ano){return (parseInt(ano,10)||0)+(/meio/.test(ano)?0.5:0);}
 function anFmt(x,k){if(x==null||isNaN(x))return '—';if(k==='col')return Math.round(x).toLocaleString('pt-BR');return (+x).toLocaleString('pt-BR',{maximumFractionDigits:2});}
@@ -968,9 +975,10 @@ function renderAnual(){
   let h="<div class='anprova'><h3>"+esc(pv)+"</h3><div class='board-scroll'><table class='antable'><thead><tr><th></th>"+
    cols.map(c=>"<th>"+esc(c.ano)+"<button class='rm' data-anrm=\""+esc(pv+'|'+c.ano)+"\" title='Apagar este ano'>×</button></th>").join('')+"</tr></thead><tbody>";
   rows.forEach(r=>{
-   const vals=cols.map(c=>r[2]?r[2](c.v||{}):(c.v||{})[r[0]]);
-   if(!r[2]&&vals.every(x=>x==null))return; // linha sem nenhum valor
-   h+="<tr"+(r[2]?" class='calc'":"")+"><td>"+esc(r[1])+"</td>"+vals.map(x=>"<td>"+anFmt(x,r[0])+"</td>").join('')+"</tr>";
+   const isTotal=r[0]==='total'; // mostra o total usado na conta, mesmo quando é o padrão da prova
+   const vals=cols.map(c=>r[2]?r[2](c.v||{}):isTotal?((c.v||{}).total??ANUAL_QTD[pv]??null):(c.v||{})[r[0]]);
+   if(vals.every(x=>x==null))return; // linha sem nenhum valor
+   h+="<tr"+(r[2]?" class='calc'":"")+"><td>"+esc(isTotal?'Total de questões':r[1])+"</td>"+vals.map(x=>"<td>"+anFmt(x,r[0])+"</td>").join('')+"</tr>";
   });
   return h+"</tbody></table></div></div>";
  }).join('');

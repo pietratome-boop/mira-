@@ -33,6 +33,8 @@ set search_path = public
 as $$
   select coalesce((select is_teacher from public.profiles where id = auth.uid()), false);
 $$;
+revoke execute on function public.is_teacher() from public, anon;
+grant execute on function public.is_teacher() to authenticated;
 
 -- Ao criar conta: cria o perfil e a linha de dados automaticamente
 create or replace function public.handle_new_user()
@@ -50,6 +52,8 @@ begin
 end;
 $$;
 
+revoke execute on function public.handle_new_user() from public, anon, authenticated;
+
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
@@ -57,7 +61,9 @@ create trigger on_auth_user_created
 
 -- Atualiza a data de "última atividade" a cada gravação
 create or replace function public.touch_updated_at()
-returns trigger language plpgsql as $$
+returns trigger language plpgsql
+set search_path = public
+as $$
 begin
   new.updated_at := now();
   return new;
@@ -108,9 +114,9 @@ create policy "dados: editar os proprios" on public.student_data
   with check (user_id = auth.uid());
 
 -- ============================================================
--- Para virar professora (rode DEPOIS de criar sua conta no site),
--- trocando pelo seu e-mail:
+-- Depois rode supabase/tutores.sql (acesso de tutor por código).
+-- Para tornar alguém tutor direto, trocando pelo e-mail:
 --
 --   update public.profiles set is_teacher = true
---   where email = 'seu-email@exemplo.com';
+--   where email = 'email@exemplo.com';
 -- ============================================================
