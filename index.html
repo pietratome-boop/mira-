@@ -1,0 +1,1107 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mira · estudos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#FAF6EF; --surface:#FFFFFF; --surface-2:#F5F0E7;
+  --ink:#22302C; --muted:#5E645C; --line:#E7DFD2;
+  --teal:#16362F; --terra:#C15A38; --terra-soft:#FBEEE7;
+  --sage:#566345; --sage-fill:#6E7F5B; --sage-soft:#EEF1E7;
+  --amber:#B07B1E; --amber-soft:#F7EFD9;
+  --serif:'Spectral',Georgia,serif; --sans:'Source Sans 3',system-ui,-apple-system,sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#141E1A; --surface:#1C2823; --surface-2:#222E29;
+    --ink:#F1EADD; --muted:#A9A59B; --line:#31403A;
+    --teal:#9FD9C6; --terra:#E0946A; --terra-soft:#2C211B;
+    --sage:#A7B58C; --sage-fill:#7E8B6A; --sage-soft:#1F2A20; --amber:#D9AC58; --amber-soft:#2E2716;
+  color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+    --bg:#141E1A; --surface:#1C2823; --surface-2:#222E29;
+    --ink:#F1EADD; --muted:#A9A59B; --line:#31403A;
+    --teal:#9FD9C6; --terra:#E0946A; --terra-soft:#2C211B;
+    --sage:#A7B58C; --sage-fill:#7E8B6A; --sage-soft:#1F2A20; --amber:#D9AC58; --amber-soft:#2E2716;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55;
+  -webkit-font-smoothing:antialiased;padding:0 20px 80px}
+.wrap{max-width:820px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:12px;padding:34px 0 0}
+.dot{width:30px;height:30px;border-radius:9px;background:var(--terra);position:relative;flex:none}
+.dot::after{content:"";position:absolute;inset:10px;border-radius:50%;background:var(--bg)}
+.brand h1{font-family:var(--serif);font-weight:600;font-size:24px;margin:0}
+.brand span{font-size:13px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase}
+section{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:26px 28px;margin-top:22px}
+.eyebrow{font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--terra);font-weight:700;margin:0 0 4px}
+.sage .eyebrow{color:var(--sage)}
+h2{font-family:var(--serif);font-weight:600;font-size:22px;margin:0 0 4px}
+.sub{font-size:14.5px;color:var(--muted);margin:0 0 20px}
+label.f{display:block;font-size:14px;font-weight:600;margin:16px 0 8px}
+select,input[type=text],input[type=date]{width:100%;font-family:var(--sans);font-size:15px;color:var(--ink);
+  background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+/* hero */
+.hero{background:var(--teal);color:var(--bg);border-radius:18px;padding:28px 30px;margin-top:22px}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.hello{font-size:14px;opacity:.75;margin:0}
+.hname{font-family:var(--serif);font-weight:600;font-size:34px;margin:2px 0 0;line-height:1.05}
+.editbtn{font-family:var(--sans);font-size:12.5px;color:var(--teal);background:var(--bg);border:none;border-radius:8px;padding:6px 12px;cursor:pointer;font-weight:700;flex:none}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.chip-exam{font-size:13px;background:rgba(255,255,255,.12);border-radius:20px;padding:6px 14px}
+.hero-stats{display:flex;align-items:baseline;gap:14px;margin-top:20px}
+.statnum{font-family:var(--serif);font-size:44px;font-weight:600;line-height:1}
+.statlbl{font-size:14px;opacity:.8}
+.motiv{margin:18px 0 0;font-size:15px;opacity:.92;font-style:italic}
+/* board */
+.board-scroll{overflow-x:auto;margin:0 -4px}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:640px}
+th,td{padding:9px 10px;text-align:center;white-space:nowrap}
+th{font-size:12px;color:var(--muted);font-weight:600;border-bottom:1px solid var(--line)}
+td:first-child,th:first-child{text-align:left}
+tbody tr td{border-bottom:1px solid var(--line)}
+.simname{font-weight:600}
+.simdate{color:var(--muted);font-size:12.5px}
+.tot{font-weight:700}
+.pct{font-weight:700;color:var(--terra)}
+.rm{cursor:pointer;color:var(--muted);border:none;background:none;font-size:18px;line-height:1;padding:0 6px}
+.rm:hover{color:var(--terra)}
+/* todo */
+.todo{display:flex;align-items:flex-start;gap:14px;padding:18px 0;border-bottom:1px solid var(--line)}
+.todo:last-child{border-bottom:none}
+.check{flex:none;width:30px;height:30px;border-radius:50%;border:2px solid var(--sage-fill);background:none;
+  cursor:pointer;color:var(--sage-fill);font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.check:hover{background:var(--sage-soft)}
+.todo-body{flex:1;min-width:0}
+.todo-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.prio{font-family:var(--serif);font-size:22px;font-weight:600;color:var(--terra)}
+.todo-tema{font-size:17px;font-weight:700}
+.todo-area{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.todo-cond{font-size:15px;margin-top:4px}
+.todo-meta{font-size:13px;color:var(--muted);margin-top:7px}
+.todo-sub{font-size:12.5px;color:var(--muted);margin-top:6px;font-style:italic}
+.chip{display:inline-block;font-size:12px;padding:2px 9px;border-radius:20px;margin-right:6px}
+.chip.alta{background:var(--sage-soft);color:var(--sage)}
+.chip.media{background:var(--amber-soft);color:var(--amber)}
+.chip.baixa{background:var(--terra-soft);color:var(--terra)}
+.incid{display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap}
+.incid span{font-size:12.5px;color:var(--muted);margin-right:2px}
+.incid button{font-family:var(--sans);font-size:12.5px;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);border-radius:20px;padding:4px 12px;cursor:pointer}
+.incid button.on{background:var(--teal);color:var(--bg);border-color:var(--teal)}
+.empty{color:var(--muted);font-size:15px;padding:12px 0;line-height:1.6}
+.cleared{background:var(--sage-soft);border-radius:12px;padding:20px;font-size:15px;line-height:1.6}
+.cleared b{color:var(--sage)}
+.alert{background:var(--surface-2);border-radius:12px;padding:16px 18px;margin-top:18px;font-size:14px;line-height:1.55}
+.alert b{color:var(--sage)}
+/* add error card */
+.qbtns{display:flex;gap:12px}
+button.opt{font-family:var(--sans);font-size:15px;text-align:left;color:var(--ink);background:var(--surface-2);
+  border:1px solid var(--line);border-radius:10px;padding:13px 15px;cursor:pointer;width:100%;margin-top:10px;transition:.12s}
+button.opt:hover{border-color:var(--muted)}
+button.opt.on{background:var(--teal);color:var(--bg);border-color:var(--teal)}
+.qbtns button.opt{margin-top:0;flex:1}
+button.opt.sabia.on{background:var(--terra);border-color:var(--terra);color:#fff}
+.conduta{margin-top:20px;background:var(--terra-soft);border-radius:12px;padding:18px 20px}
+.conduta h3{font-family:var(--serif);font-weight:600;font-size:19px;margin:0 0 4px}
+.conduta p{margin:0;font-size:14.5px;color:var(--muted)}
+.recup{display:flex;justify-content:space-between;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);
+  font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.recup b{font-size:15px;text-transform:none;letter-spacing:0}
+.cta{margin-top:20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.cta button,.addbtn,.primary{font-family:var(--sans);font-size:15px;font-weight:700;color:var(--bg);background:var(--teal);border:none;border-radius:10px;padding:13px 24px;cursor:pointer}
+.addbtn{background:var(--sage-fill)}
+.cta button:disabled{opacity:.4;cursor:not-allowed}
+.err{color:var(--terra);font-size:13.5px;font-weight:600}
+.left-count{font-size:13.5px;color:var(--muted)}
+/* sim form */
+.simhead{display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.simhead input,.simhead select{flex:1;min-width:150px}
+/* provas oficiais ano a ano */
+.anprova{margin-top:18px}
+.anprova:first-child{margin-top:0}
+.anprova h3{font-family:var(--serif);font-weight:600;font-size:18px;margin:0 0 6px;padding:6px 12px;border-radius:8px;background:var(--surface-2);border-left:4px solid var(--terra)}
+.antable{min-width:0;width:auto}
+.antable th,.antable td{font-variant-numeric:tabular-nums;padding:8px 14px}
+.antable td:first-child{color:var(--muted)}
+.antable tr.calc td{font-weight:700;color:var(--ink)}
+.antable th .rm{font-size:15px;padding:0 0 0 4px}
+.anualform{margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+.simcell input.an{width:100%;padding:8px 6px;text-align:center;font-family:var(--sans);font-size:15px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px}
+.simgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px}
+.simcell{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:11px 12px}
+.simcell label{display:block;font-size:13px;font-weight:700;margin:0 0 8px}
+.simcell .qa{display:flex;gap:8px}
+.simcell .qa>div{flex:1}
+.simcell .qa .cap{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:center;margin-bottom:4px}
+.simcell .qa input{width:100%;padding:8px 6px;text-align:center;font-family:var(--sans);font-size:15px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px}
+/* onboarding */
+.ob-exam{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.ob-exam input{flex:1;min-width:130px}
+.exam-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 14px;border:1px solid var(--line);border-radius:10px;margin-bottom:10px;background:var(--surface-2)}
+.exam-row.on{border-color:var(--terra);background:var(--terra-soft)}
+.exam-main{display:flex;align-items:center;gap:12px;font-size:15px;cursor:pointer;flex:1}
+.exam-main input{width:18px;height:18px;accent-color:var(--terra);flex:none}
+.exam-date{flex:none;width:172px;font-family:var(--sans);font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.exam-date:disabled{opacity:.4}
+@media(max-width:520px){.exam-row{flex-wrap:wrap}.exam-date{width:100%}}
+.ghost{font-family:var(--sans);font-size:14px;color:var(--muted);background:none;border:1px dashed var(--line);border-radius:10px;padding:10px 16px;cursor:pointer}
+.foot{margin-top:22px;font-size:13px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap}
+.foot button{font-family:var(--sans);font-size:13px;color:var(--muted);background:none;border:1px solid var(--line);border-radius:8px;padding:7px 14px;cursor:pointer}
+datalist{color:#000}
+.inc-auto{display:inline-block;font-size:12.5px;padding:3px 11px;border-radius:20px;font-weight:600}
+.inc-auto.inc-alta{background:var(--sage-soft);color:var(--sage)}
+.inc-auto.inc-media{background:var(--amber-soft);color:var(--amber)}
+.inc-auto.inc-baixa{background:var(--terra-soft);color:var(--terra)}
+.reinc{display:inline-block;margin-top:8px;font-size:12.5px;font-weight:700;color:var(--terra);background:var(--terra-soft);border-radius:20px;padding:3px 11px}
+.rev{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
+.rev:last-child{border-bottom:none}
+.rev-ic{flex:none;width:30px;height:30px;border-radius:50%;background:var(--sage-fill);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px}
+.rev-ic.back{background:var(--terra)}
+.rev-body{flex:1;min-width:0}
+.rev-tema{font-size:16px;font-weight:700}
+.rev-meta{font-size:13px;color:var(--muted);margin-top:3px}
+.rev-st{flex:none;font-size:12px;font-weight:700;border-radius:20px;padding:3px 11px}
+.rev-st.ok{background:var(--sage-soft);color:var(--sage)}
+.rev-st.back{background:var(--terra-soft);color:var(--terra)}
+.undo{font-family:var(--sans);font-size:12px;color:var(--muted);background:none;border:none;text-decoration:underline;cursor:pointer;padding:0;margin-left:10px}
+/* topo / conta */
+.brand .userbar{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;font-size:13px;color:var(--muted);text-transform:none;letter-spacing:0}
+.userbar button{font-family:var(--sans);font-size:13px;color:var(--muted);background:none;border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer}
+.userbar button.hl{color:var(--teal);border-color:var(--teal);font-weight:700}
+.tabs{display:flex;gap:8px;margin:4px 0 6px}
+.tabs button{flex:1;font-family:var(--sans);font-size:15px;font-weight:600;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px;cursor:pointer}
+.tabs button.on{background:var(--teal);color:var(--bg);border-color:var(--teal)}
+input[type=email],input[type=password],input[type=search]{width:100%;font-family:var(--sans);font-size:15px;color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.cta .linkbtn,.linkbtn{font-family:var(--sans);font-size:13.5px;font-weight:400;color:var(--muted);background:none;border:none;text-decoration:underline;cursor:pointer;padding:0}
+@media(max-width:520px){#ubemail{display:none}}
+.ok-msg{color:var(--sage);font-size:13.5px;font-weight:600}
+.hint{font-size:13px;color:var(--muted);margin-top:14px;line-height:1.5}
+.sync{font-size:13px;color:var(--muted)}
+.sync.bad{color:var(--terra);font-weight:600}
+/* modo somente leitura (professora vendo aluno) */
+.ro-banner{display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--terra-soft);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-top:22px;font-size:14.5px}
+.ro .ro-banner{display:flex}
+.ro .rw{display:none!important}
+.ro .check,.ro .rm,.ro .undo{visibility:hidden}
+.ro .incid button{pointer-events:none}
+/* painel da professora */
+.tstats{display:flex;gap:28px;flex-wrap:wrap;margin:4px 0 18px}
+.tstats div{font-size:13px;color:var(--muted)}
+.tstats b{display:block;font-family:var(--serif);font-size:30px;font-weight:600;color:var(--ink);line-height:1.1}
+#tlist tbody tr{cursor:pointer}
+#tlist tbody tr:hover td{background:var(--surface-2)}
+#tlist td{white-space:normal}
+#tlist .simname{white-space:nowrap}
+.tfoc{font-size:13px;color:var(--muted);max-width:260px}
+.low{color:var(--terra);font-weight:700}
+/* confirmação desenhada na página */
+.askbox{position:fixed;inset:0;background:rgba(10,20,16,.5);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+.askbox[hidden]{display:none}
+.askcard{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:var(--r);padding:22px 24px;max-width:440px;width:100%;max-height:85vh;overflow:auto}
+.askcard p{margin:0;font-size:15px;white-space:pre-line}
+.askcard .cta{margin-top:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand"><div class="dot"></div><h1>Mira</h1><span>estudos</span>
+    <div class="userbar" id="userbar" style="display:none">
+      <span id="ubemail"></span>
+      <button id="ubteacher" class="hl" style="display:none">painel da turma</button>
+      <button id="ublogout">sair</button>
+    </div>
+  </div>
+
+  <!-- CONFIGURAÇÃO PENDENTE -->
+  <div id="v-setup" class="view" style="display:none">
+    <section>
+      <p class="eyebrow">Falta configurar</p>
+      <h2>Conecte o Mira ao Supabase</h2>
+      <p class="sub">Abra o arquivo <b>index.html</b>, procure por <b>SUPABASE_URL</b> e <b>SUPABASE_ANON_KEY</b> no começo do código e cole os valores do seu projeto (Supabase → Project Settings → API). O passo a passo completo está no README.</p>
+    </section>
+  </div>
+
+  <!-- CARREGANDO -->
+  <div id="v-loading" class="view">
+    <section><p class="empty">Carregando…</p></section>
+  </div>
+
+  <!-- LOGIN / CADASTRO -->
+  <div id="v-auth" class="view" style="display:none">
+    <section>
+      <p class="eyebrow">Bem-vinda, bem-vindo</p>
+      <h2>Entre para ver o seu painel</h2>
+      <p class="sub">Seu placar, sua fila de revisão e seus erros ficam salvos na sua conta — em qualquer celular ou computador.</p>
+      <div class="tabs"><button data-tab="in" class="on">Entrar</button><button data-tab="up">Criar conta</button></div>
+      <div id="au-namewrap" style="display:none">
+        <label class="f" for="au-name">Seu nome</label>
+        <input type="text" id="au-name" placeholder="ex: Ana Souza" autocomplete="name">
+      </div>
+      <label class="f" for="au-email">E-mail</label>
+      <input type="email" id="au-email" placeholder="voce@email.com" autocomplete="email">
+      <label class="f" for="au-pass">Senha</label>
+      <input type="password" id="au-pass" placeholder="mínimo 6 caracteres" autocomplete="current-password">
+      <div class="cta"><button class="primary" id="au-go">Entrar</button><button class="linkbtn" id="au-forgot">esqueci minha senha</button></div>
+      <p class="err" id="au-err"></p><p class="ok-msg" id="au-ok"></p>
+      <p class="hint" id="au-privacy" style="display:none">Ao criar a conta, a coordenação do cursinho passa a ver seu progresso (simulados, acertos e temas da fila) para poder te acompanhar. Ninguém além dela e de você vê esses dados.</p>
+    </section>
+  </div>
+
+  <!-- NOVA SENHA (link de recuperação) -->
+  <div id="v-recovery" class="view" style="display:none">
+    <section>
+      <p class="eyebrow">Recuperar acesso</p>
+      <h2>Escolha uma nova senha</h2>
+      <label class="f" for="rc-pass">Nova senha</label>
+      <input type="password" id="rc-pass" placeholder="mínimo 6 caracteres" autocomplete="new-password">
+      <div class="cta"><button class="primary" id="rc-go">Salvar senha</button><span class="err" id="rc-err"></span></div>
+    </section>
+  </div>
+
+  <!-- ONBOARDING -->
+  <div id="v-onboarding" class="view" style="display:none">
+    <section>
+      <p class="eyebrow">Antes de começar</p>
+      <h2>Quem é você e o que vai prestar</h2>
+      <p class="sub">Isso monta o seu painel. As provas que você escolher direcionam a incidência de cada tema na sua fila.</p>
+      <label class="f" for="obname">Seu nome</label>
+      <input type="text" id="obname" placeholder="ex: Ana">
+      <label class="f">Provas que você vai prestar</label>
+      <p class="sub" style="margin-top:-2px">Marque as que vai fazer. Se já souber a data, preencha — o painel usa ela na contagem regressiva.</p>
+      <div id="obexams"></div>
+      <div class="cta"><button class="primary" id="obstart">Salvar</button><span class="err" id="oberr"></span></div>
+    </section>
+  </div>
+
+  <!-- PAINEL DA PROFESSORA -->
+  <div id="v-teacher" class="view" style="display:none">
+    <section>
+      <p class="eyebrow">Painel da turma</p>
+      <h2>Como estão seus alunos</h2>
+      <p class="sub">Toque em um aluno para abrir o painel dele (somente leitura). Ordenado por quem está com menor % de acerto.</p>
+      <div class="tstats" id="tstats"></div>
+      <input type="search" id="tsearch" placeholder="Buscar aluno pelo nome ou e-mail">
+      <div class="board-scroll" style="margin-top:14px"><table id="tlist"></table></div>
+      <div class="cta"><button class="ghost" id="treload">Atualizar lista</button><span class="err" id="terr"></span></div>
+    </section>
+  </div>
+
+  <!-- APP DO ALUNO -->
+  <div id="v-app" class="view" style="display:none">
+    <div class="ro-banner"><span>Você está vendo o painel de <b id="roname"></b> — somente leitura.</span><button class="editbtn" id="roback" style="background:var(--teal);color:var(--bg)">← voltar à turma</button></div>
+    <div class="hero">
+      <div class="hero-top">
+        <div><p class="hello">Olá,</p><div class="hname" id="hname"></div></div>
+        <button class="editbtn rw" id="editprofile">editar</button>
+      </div>
+      <div class="chips" id="countchips"></div>
+      <div class="hero-stats"><div class="statnum" id="totpct">—</div><div class="statlbl" id="totsub"></div></div>
+      <p class="motiv" id="motiv"></p>
+    </div>
+
+    <section>
+      <p class="eyebrow">Simulados que você já fez</p>
+      <h2>Seu placar por área</h2>
+      <p class="sub">A base de tudo. As áreas fracas aparecem pela taxa de erro.</p>
+      <div class="board-scroll"><table id="board"></table></div>
+    </section>
+
+    <section id="anual">
+      <p class="eyebrow">Provas oficiais · ano a ano</p>
+      <h2>Seu desempenho nos vestibulares</h2>
+      <p class="sub">As notas das provas de verdade que você já prestou, lado a lado por ano.</p>
+      <div id="anualtabs"></div>
+      <div class="anualform rw">
+        <label class="f" style="margin-top:0">Lançar ou corrigir um resultado</label>
+        <div class="simhead"><select id="anprova" aria-label="Vestibular"></select><select id="anano" aria-label="Ano"></select></div>
+        <div class="simgrid" id="anfields"></div>
+        <div class="cta"><button class="addbtn" id="anadd">Salvar resultado</button><span class="err" id="anerr"></span><span class="ok-msg" id="anok"></span></div>
+      </div>
+    </section>
+
+    <section class="sage">
+      <p class="eyebrow">Sua fila de revisão</p>
+      <h2>Revise nesta ordem — e vá marcando</h2>
+      <p class="sub">Cada tema com a orientação do que fazer. Marcou como revisado, ele sai. Quando a fila zerar, um novo simulado revela os próximos.</p>
+      <div id="todo"></div>
+      <div id="alert"></div>
+    </section>
+
+    <section id="classify" class="rw">
+      <p class="eyebrow">Adicionar simulado</p>
+      <h2>Lance um simulado por área</h2>
+      <p class="sub">Preencha só as áreas que caíram. As em branco são ignoradas.</p>
+      <div id="simform"></div>
+    </section>
+
+    <section class="rw">
+      <p class="eyebrow">Adicionar erro</p>
+      <h2>Duas perguntas e a Mira sabe o que fazer</h2>
+      <p class="sub">Classifique cada questão errada. A área você já sabe pelo placar; aqui ela vira tema.</p>
+      <label class="f" for="area">Área do erro <span class="left-count" id="leftcount"></span></label>
+      <select id="area"></select>
+      <label class="f" for="tema">Tema da questão</label>
+      <select id="tema"></select>
+      <input type="text" id="temaOutro" placeholder="Escreva o tema" autocomplete="off" style="display:none;margin-top:10px">
+      <input type="text" id="subtema" placeholder="Subtema (opcional) — ex: cadeia alimentar, Era Vargas…" autocomplete="off" style="margin-top:10px">
+      <label class="f">Você sabia o conteúdo desse tema?</label>
+      <div class="qbtns">
+        <button class="opt sabia" data-q1="sabia">Sabia</button>
+        <button class="opt sabia" data-q1="naosabia">Não sabia</button>
+      </div>
+      <div id="q2wrap" style="display:none">
+        <label class="f">Então o que aconteceu na hora?</label>
+        <button class="opt" data-tipo="aplicacao">Sabia a teoria, mas não soube aplicar</button>
+        <button class="opt" data-tipo="interpretacao">Entendi errado o que o enunciado pedia</button>
+        <button class="opt" data-tipo="atencao">Escorreguei — marquei errado sem querer</button>
+        <button class="opt" data-tipo="tempo">Acabou o tempo e eu chutei</button>
+        <button class="opt" data-tipo="banca">Caí numa pegadinha da banca</button>
+      </div>
+      <div class="conduta" id="conduta" style="display:none">
+        <p class="eyebrow" id="cond-area">conduta</p>
+        <h3 id="cond-title"></h3>
+        <p id="cond-desc"></p>
+        <div class="recup"><span>recuperabilidade do ponto</span><b id="cond-recup"></b></div>
+      </div>
+      <div class="cta"><button id="reg" disabled>Registrar erro</button><span class="err" id="regerr"></span></div>
+    </section>
+
+    <section class="sage">
+      <p class="eyebrow">Temas já revisados</p>
+      <h2>O que você já estudou pela fila</h2>
+      <p class="sub">Tudo que você marcou como revisado. Se errar de novo um desses temas, ele volta para a fila como <b>reincidente</b> — com prioridade maior e uma conduta diferente.</p>
+      <div id="revisados"></div>
+    </section>
+
+    <div class="foot rw"><span class="sync" id="sync">tudo salvo</span><button id="importold" style="display:none">Trazer dados da versão antiga deste navegador</button><button id="reset">Apagar meus dados e recomeçar</button></div>
+  </div>
+</div>
+
+<div class="askbox" id="askbox" hidden role="dialog" aria-modal="true"><div class="askcard"><p id="askmsg"></p><div class="cta"><button class="primary" id="askyes">Confirmar</button><button class="ghost" id="askno">Cancelar</button></div></div></div>
+
+<script>
+/* ============================================================
+   CONFIGURAÇÃO — cole aqui os dados do seu projeto Supabase
+   (Supabase → Project Settings → API). A chave "anon public"
+   pode ficar no site; NUNCA cole a "service_role".
+   ============================================================ */
+const SUPABASE_URL='https://djjhxglnphfxfefljmaf.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_7GMbN5BueqAdIetjHZ-B9w_TzJOJ53q';
+
+/* ---------- ESTADO ---------- */
+let sb=null;
+let ME={user:null,profile:null};   // quem está logado
+let profile=null;                  // perfil em uso na tela (o próprio, ou o do aluno aberto pela professora)
+let SIMS=[];
+let S=emptyState();
+let RO=false;                      // professora vendo o painel de um aluno (somente leitura)
+let CLASS=[];                      // turma carregada no painel da professora
+
+function emptyState(){return{cls:[],incid:{},hist:{},anuais:[]};}
+function normState(s){
+ s=s||{};
+ const o={cls:Array.isArray(s.cls)?s.cls:[],incid:s.incid||{},hist:s.hist||{},anuais:Array.isArray(s.anuais)?s.anuais:[]};
+ if(s.done)Object.keys(s.done).forEach(k=>{if(s.done[k]!=null&&!o.hist[k])o.hist[k]=[{at:s.done[k],date:null}];});
+ return o;
+}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+const $=id=>document.getElementById(id);
+function ask(msg,yes){return new Promise(res=>{
+ $('askmsg').textContent=msg;$('askyes').textContent=yes||'Confirmar';$('askbox').hidden=false;$('askyes').focus();
+ const done=v=>{$('askbox').hidden=true;$('askyes').onclick=$('askno').onclick=null;res(v);};
+ $('askyes').onclick=()=>done(true);$('askno').onclick=()=>done(false);
+});}
+
+/* ---------- SALVAR NA NUVEM ---------- */
+let syncT=null,syncing=false,dirty=false;
+function setSync(t,bad){const el=$('sync');el.textContent=t;el.classList.toggle('bad',!!bad);}
+function save(){if(RO||!ME.user)return;dirty=true;setSync('salvando…');clearTimeout(syncT);syncT=setTimeout(pushRemote,700);}
+async function pushRemote(){
+ if(RO||!ME.user)return;
+ if(syncing){clearTimeout(syncT);syncT=setTimeout(pushRemote,400);return;}
+ syncing=true;dirty=false;
+ const {error}=await sb.from('student_data').upsert({user_id:ME.user.id,sims:SIMS,state:S});
+ syncing=false;
+ if(error){console.error(error);dirty=true;setSync('não salvou — tentando de novo…',true);clearTimeout(syncT);syncT=setTimeout(pushRemote,4000);}
+ else if(!dirty)setSync('tudo salvo');
+}
+async function flush(){clearTimeout(syncT);if(dirty&&!RO&&ME.user)await pushRemote();}
+window.addEventListener('beforeunload',e=>{if(dirty||syncing){e.preventDefault();e.returnValue='';}});
+
+const AREAS=["Biologia","Química","Física","História","Geografia","Filosofia/Socio","Português","Língua estr.","Matemática"];
+const WEIGHT={conteudo:.45,aplicacao:.80,interpretacao:.80,banca:.65};
+const KNOWLEDGE=["conteudo","aplicacao","interpretacao","banca"];
+const CONDUTA={
+ conteudo:["Estudar o tema do zero","O buraco é de base: teoria antes de questão."],
+ aplicacao:["Mais questões — não reler resumo","Bateria de 10 a 15 questões do mesmo recorte."],
+ interpretacao:["Treino de leitura e de reformular a pergunta","Reescreva o enunciado com suas palavras antes de resolver."],
+ banca:["Estudar o estilo daquela banca","Mapear as pegadinhas clássicas da prova-alvo."],
+ atencao:["Checklist de revisão e controle de tempo","Erro de execução — não é do tema, é do momento."],
+ tempo:["Estratégia de prova, não conteúdo","Erro de execução — ordem das questões e relógio."],
+};
+const TIPONAME={conteudo:"Erro de conteúdo",aplicacao:"Erro de aplicação",interpretacao:"Erro de interpretação",banca:"Erro de banca",atencao:"Erro de atenção",tempo:"Erro de tempo"};
+const RECUP_TXT={conteudo:"baixa",aplicacao:"alta",interpretacao:"alta",banca:"média"};
+const INCID={baixa:.4,"média":.7,alta:1};
+const EXAM_INCID={
+"Biologia":{
+"Genética":{"Einstein — Medicina":"alta","Fuvest (USP)":"média","ENEM":"alta","Unesp":"alta","Unicamp":"média"},
+"Ecologia":{"Einstein — Medicina":"média","Fuvest (USP)":"alta","ENEM":"alta","Unesp":"alta","Unicamp":"alta"},
+"Citologia":{"Einstein — Medicina":"média","Unesp":"média"},
+"Fisiologia humana":{"Einstein — Medicina":"média","Unesp":"alta"},
+"Botânica":{"Einstein — Medicina":"média","Fuvest (USP)":"média"},
+"Microbiologia":{"Fuvest (USP)":"média"},
+"Parasitologia":{"Einstein — Medicina":"média"},
+"Evolução":{"Unesp":"média","ENEM":"média","Unicamp":"alta"},
+"Zoologia":{"Fuvest (USP)":"média"},
+"Bioquímica":{"Einstein — Medicina":"baixa"}
+},
+"Química":{
+"Química orgânica":{"Einstein — Medicina":"alta","Fuvest (USP)":"alta","ENEM":"alta"},
+"Estequiometria":{"Einstein — Medicina":"média","Fuvest (USP)":"média","ENEM":"alta","Unicamp":"alta"},
+"Termoquímica":{"Einstein — Medicina":"média","Fuvest (USP)":"média"},
+"Soluções":{"Einstein — Medicina":"média","Fuvest (USP)":"média"},
+"Físico-química":{"Einstein — Medicina":"média"},
+"Equilíbrio químico":{"Fuvest (USP)":"alta"},
+"Radioatividade":{"Einstein — Medicina":"média"},
+"Funções inorgânicas":{"Einstein — Medicina":"média","ENEM":"média"},
+"Ligações químicas":{"Einstein — Medicina":"média","Fuvest (USP)":"média","Unesp":"média"},
+"Reações químicas":{"Unesp":"média","ENEM":"média"},
+"Química ambiental":{"Unicamp":"média","ENEM":"média"}
+},
+"Física":{
+"Eletrodinâmica":{"Einstein — Medicina":"alta","Fuvest (USP)":"alta","ENEM":"alta","Unesp":"alta"},
+"Óptica":{"Einstein — Medicina":"alta","Unesp":"média"},
+"Ondulatória":{"Einstein — Medicina":"alta","Fuvest (USP)":"média","ENEM":"média"},
+"Termologia":{"Einstein — Medicina":"média","Fuvest (USP)":"alta","ENEM":"média","Unesp":"média"},
+"Mecânica":{"Einstein — Medicina":"média","Fuvest (USP)":"média","ENEM":"média","Unesp":"alta"},
+"Trabalho e energia":{"Fuvest (USP)":"alta","Unesp":"média"},
+"Eletromagnetismo":{"Unesp":"média","Einstein — Medicina":"baixa"},
+"Gravitação":{"Einstein — Medicina":"baixa"}
+},
+"Matemática":{
+"Matemática básica":{"Einstein — Medicina":"média","Fuvest (USP)":"alta","ENEM":"alta","Unesp":"alta"},
+"Geometria plana":{"Einstein — Medicina":"média","Fuvest (USP)":"alta","ENEM":"alta","Unesp":"alta"},
+"Geometria espacial":{"Einstein — Medicina":"média","Fuvest (USP)":"alta","Unesp":"média"},
+"Trigonometria":{"Einstein — Medicina":"média","Fuvest (USP)":"alta","Unesp":"média"},
+"Probabilidade":{"Einstein — Medicina":"média","ENEM":"média","Unesp":"média"},
+"Funções":{"ENEM":"alta","Unesp":"alta","Fuvest (USP)":"média"},
+"Estatística":{"ENEM":"alta"},
+"Matemática financeira":{"ENEM":"alta"},
+"Análise combinatória":{"Einstein — Medicina":"baixa"},
+"Geometria analítica":{"Einstein — Medicina":"média"}
+},
+"História":{
+"História do Brasil":{"Einstein — Medicina":"alta","ENEM":"alta","Unesp":"alta"},
+"História Geral":{"Einstein — Medicina":"alta"},
+"Brasil Colônia":{"Einstein — Medicina":"média","Fuvest (USP)":"alta","Unesp":"média"},
+"Brasil República":{"Einstein — Medicina":"média","ENEM":"alta"},
+"Idade Moderna/Contemporânea":{"Einstein — Medicina":"média","Fuvest (USP)":"alta"},
+"Antiguidade/Idade Média":{"Einstein — Medicina":"baixa"}
+},
+"Geografia":{
+"Geomorfologia":{"Einstein — Medicina":"alta"},
+"Cartografia":{"Einstein — Medicina":"alta"},
+"Clima":{"Fuvest (USP)":"alta","Unesp":"média"},
+"Urbanização":{"Einstein — Medicina":"média","Unesp":"média"},
+"Geopolítica":{"Einstein — Medicina":"média"},
+"Meio ambiente":{"Einstein — Medicina":"média","ENEM":"alta","Unesp":"média"},
+"Demografia":{"Einstein — Medicina":"média","Fuvest (USP)":"média"},
+"Espaço agrário":{"Fuvest (USP)":"média"}
+},
+"Português":{
+"Interpretação de texto":{"Einstein — Medicina":"alta","ENEM":"alta"},
+"Sintaxe/Gramática":{"Einstein — Medicina":"média"},
+"Escolas literárias":{"Einstein — Medicina":"média"},
+"Figuras de linguagem":{"Einstein — Medicina":"média"},
+"Variação linguística":{"Einstein — Medicina":"baixa"}
+},
+"Língua estr.":{
+"Interpretação de texto":{"Einstein — Medicina":"alta","ENEM":"alta"},
+"Vocabulário":{"Einstein — Medicina":"média"}
+}
+};
+const VUNESP_ESCOLAS=["Santa Casa — Medicina","Famema — Medicina","Famerp — Medicina","Unifesp — Medicina"];
+const VUNESP_INCID={"Biologia": {"Genética": "alta","Ecologia": "alta","Botânica": "média","Fisiologia humana": "média","Parasitologia": "baixa","Citologia": "baixa","Evolução": "baixa","Zoologia": "baixa","Bioquímica": "baixa","Embriologia": "baixa","Microbiologia": "baixa"},"Química": {"Química orgânica": "alta","Eletroquímica": "média","Estequiometria": "média","Radioatividade": "média","Soluções": "média","Equilíbrio químico": "baixa","Gases": "baixa","Propriedades da matéria": "baixa","Cinética química": "baixa","Estrutura atômica": "baixa","Funções inorgânicas": "baixa","Ligações químicas": "baixa","Química geral": "baixa"},"Física": {"Termologia": "alta","Cinemática": "média","Dinâmica": "média","Eletrodinâmica": "média","Hidrostática": "média","Óptica": "média","Ondulatória": "baixa","Eletromagnetismo": "baixa","Física moderna": "baixa"},"Matemática": {"Geometria plana": "alta","Análise combinatória": "média","Funções": "média","Geometria espacial": "média","Estatística": "baixa","Geometria analítica": "baixa","Probabilidade": "baixa","Razão e proporção": "baixa","Sistemas lineares": "baixa","Frações": "baixa","Porcentagem": "baixa","Progressões": "baixa","Aritmética": "baixa"},"História": {"Brasil República": "alta","Idade Contemporânea": "média","Antiguidade": "média","Brasil Colônia": "média","Idade Média": "média","Século XX": "média","Brasil Império": "média","Idade Moderna": "baixa"},"Geografia": {"Geografia econômica": "alta","Meio ambiente": "alta","Geopolítica": "média","Cartografia": "média","Urbanização": "média","Geologia": "baixa","Clima": "baixa","Demografia": "baixa","Geografia do Brasil": "baixa","Geomorfologia": "baixa"},"Português": {"Interpretação": "alta","Sintaxe": "alta","Literatura": "alta","Figuras de linguagem": "baixa","Semântica": "baixa","Morfologia": "baixa","Variação linguística": "baixa"},"Língua estr.": {"Interpretação": "alta"}};
+const TEMAS={};
+[...new Set([].concat(Object.keys(EXAM_INCID),Object.keys(VUNESP_INCID)))].forEach(function(a){
+ var st=new Set();
+ if(EXAM_INCID[a])Object.keys(EXAM_INCID[a]).forEach(function(t){st.add(t);});
+ if(VUNESP_INCID[a])Object.keys(VUNESP_INCID[a]).forEach(function(t){st.add(t);});
+ TEMAS[a]=[...st];
+});
+const TIER_ORDER={baixa:1,"média":2,alta:3};
+function autoIncid(area,tema){
+ const sel=(profile&&profile.exams?profile.exams.map(e=>e.name):[]);
+ let best=null,exs=[];
+ function consider(tier,label){if(!tier)return;if(!best||TIER_ORDER[tier]>TIER_ORDER[best]){best=tier;exs=[label];}else if(tier===best&&exs.indexOf(label)<0){exs.push(label);}}
+ var rec=EXAM_INCID[area]&&EXAM_INCID[area][tema];
+ if(rec)Object.entries(rec).forEach(function(p){if(sel.indexOf(p[0])>=0)consider(p[1],p[0]);});
+ var vt=VUNESP_INCID[area]&&VUNESP_INCID[area][tema];
+ if(vt&&sel.some(function(e){return VUNESP_ESCOLAS.indexOf(e)>=0;}))consider(vt,"VUNESP");
+ return best?{tier:best,exams:exs}:null;
+}
+
+/* ---------- TELAS ---------- */
+function show(v){
+ document.querySelectorAll('.view').forEach(x=>x.style.display='none');
+ $('v-'+v).style.display='block';
+ document.body.classList.toggle('ro',RO&&v==='app');
+ window.scrollTo(0,0);
+}
+
+/* ---------- ONBOARDING ---------- */
+const EXAMS=[
+ {id:"enem",name:"ENEM"},
+ {id:"fuvest",name:"Fuvest (USP)"},
+ {id:"unicamp",name:"Unicamp"},
+ {id:"unesp",name:"Unesp"},
+ {id:"famema",name:"Famema — Medicina"},
+ {id:"famerp",name:"Famerp — Medicina"},
+ {id:"unifesp",name:"Unifesp — Medicina"},
+ {id:"einstein",name:"Einstein — Medicina"},
+ {id:"santacasa",name:"Santa Casa — Medicina"},
+ {id:"sirio",name:"Sírio-Libanês — Medicina"},
+ {id:"bp",name:"BP — Beneficência Portuguesa — Medicina"}
+];
+let obSel={};
+function renderObExams(){
+ const box=$('obexams');box.innerHTML='';
+ EXAMS.forEach(e=>{
+  const st=obSel[e.id]||{checked:false,date:''};
+  const row=document.createElement('div');row.className='exam-row'+(st.checked?' on':'');
+  row.innerHTML="<label class='exam-main'><input type='checkbox' "+(st.checked?'checked':'')+" data-id='"+e.id+"'><span>"+esc(e.name)+"</span></label>"+
+   "<input type='date' class='exam-date' value='"+esc(st.date||'')+"' data-date='"+e.id+"'"+(st.checked?'':' disabled')+">";
+  box.appendChild(row);
+ });
+ box.querySelectorAll('[data-id]').forEach(c=>c.addEventListener('change',()=>{
+  const id=c.dataset.id;obSel[id]=obSel[id]||{date:''};obSel[id].checked=c.checked;renderObExams();}));
+ box.querySelectorAll('[data-date]').forEach(d=>d.addEventListener('input',()=>{
+  const id=d.dataset.date;obSel[id]=obSel[id]||{checked:true};obSel[id].date=d.value;}));
+}
+async function saveProfile(p){
+ const uid=ME.user.id;
+ let {data,error}=await sb.from('profiles').update(p).eq('id',uid).select();
+ if(!error&&(!data||!data.length))({error}=await sb.from('profiles').insert(Object.assign({id:uid,email:ME.user.email},p)));
+ if(error){console.error(error);return false;}
+ ME.profile=Object.assign({},ME.profile,p);profile=ME.profile;return true;
+}
+$('obstart').addEventListener('click',async()=>{
+ const name=$('obname').value.trim();
+ const err=$('oberr');err.textContent='';
+ if(!name){err.textContent='Escreva seu nome.';return;}
+ const exams=EXAMS.filter(e=>obSel[e.id]&&obSel[e.id].checked).map(e=>({name:e.name,date:(obSel[e.id].date||'')}));
+ if(!exams.length){err.textContent='Marque ao menos uma prova.';return;}
+ const btn=$('obstart');btn.disabled=true;
+ const ok=await saveProfile({name,exams});
+ btn.disabled=false;
+ if(!ok){err.textContent='Não consegui salvar. Confira sua internet e tente de novo.';return;}
+ showApp();
+});
+function showOnboarding(){
+ obSel={};
+ if(profile&&profile.exams)profile.exams.forEach(pe=>{const m=EXAMS.find(x=>x.name===pe.name);if(m)obSel[m.id]={checked:true,date:pe.date||''};});
+ $('obname').value=profile?profile.name:'';
+ renderObExams();
+ show('onboarding');
+}
+$('editprofile').addEventListener('click',showOnboarding);
+
+/* ---------- HERO ---------- */
+function daysUntil(ds){const d=new Date(ds+'T00:00:00');const n=new Date();n.setHours(0,0,0,0);return Math.round((d-n)/86400000);}
+function totals(){let tq=0,ta=0;SIMS.forEach(s=>AREAS.forEach(a=>{const c=s.a[a];if(c&&c[0]){tq+=c[0];ta+=c[1]}}));return{tq,ta};}
+function renderHero(){
+ $('hname').textContent=profile.name||'';
+ let ch='';(profile.exams||[]).forEach(e=>{
+  if(!e.date){ch+="<span class='chip-exam'>"+esc(e.name)+"</span>";return;}
+  const d=daysUntil(e.date);
+  const txt=d>0?("faltam "+d+" dia"+(d>1?'s':'')):d===0?"é hoje!":("passou há "+(-d)+" dia"+(d<-1?'s':''));
+  ch+="<span class='chip-exam'><b>"+esc(e.name)+"</b> · "+txt+"</span>";
+ });
+ $('countchips').innerHTML=ch;
+ const {tq,ta}=totals();
+ $('totpct').textContent=tq?Math.round(ta/tq*100)+'%':'—';
+ $('totsub').textContent=tq?('de acerto geral · '+SIMS.length+' simulado'+(SIMS.length>1?'s':'')):'de acerto geral';
+ $('motiv').textContent=motiv();
+}
+function motiv(){
+ if(!SIMS.length)return "Sem dado, não existe Mira. Comece adicionando um simulado.";
+ const t=activeTemas();
+ if(!t.length && state_hasClassified())return "Fila zerada — isso é raro. Traga um novo simulado e siga em frente.";
+ if(!t.length)return "Registre os erros dos seus simulados para a fila de revisão nascer.";
+ return "Um tema de cada vez. Você já mapeou "+t.length+" foco"+(t.length>1?'s':'')+" — comece pelo topo.";
+}
+function state_hasClassified(){return S.cls.some(c=>KNOWLEDGE.includes(c.tipo));}
+
+/* ---------- BOARD ---------- */
+function buildBoard(){
+ const t=$('board');
+ if(!SIMS.length){t.innerHTML="<tbody><tr><td class='empty' style='padding:6px 2px'>Nenhum simulado ainda"+(RO?".":" — adicione o primeiro na seção abaixo.")+"</td></tr></tbody>";return;}
+ let h="<thead><tr><th>Simulado</th>";AREAS.forEach(a=>h+="<th>"+esc(a)+"</th>");h+="<th>Total</th><th>%</th><th></th></tr></thead><tbody>";
+ SIMS.forEach((s,i)=>{let tq=0,ta=0;h+="<tr><td><span class='simname'>"+esc(s.name)+"</span><br><span class='simdate'>"+esc(s.date)+"</span></td>";
+  AREAS.forEach(a=>{const c=s.a[a];if(c&&c[0]){tq+=c[0];ta+=c[1];h+="<td>"+c[1]+"/"+c[0]+"</td>"}else h+="<td>—</td>"});
+  h+="<td class='tot'>"+ta+"/"+tq+"</td><td class='pct'>"+(tq?Math.round(ta/tq*100):0)+"%</td><td><button class='rm' data-rm='"+i+"' title='Remover'>×</button></td></tr>"});
+ h+="</tbody>";t.innerHTML=h;
+ t.querySelectorAll('[data-rm]').forEach(b=>b.addEventListener('click',async()=>{
+  if(RO)return;const s=SIMS[+b.dataset.rm];
+  if(!await ask('Remover o simulado "'+s.name+'" do placar?\n\nOs erros que você já classificou continuam na fila.','Remover'))return;
+  SIMS.splice(+b.dataset.rm,1);saveAndRender();}));
+}
+function errorsByArea(){const m={};AREAS.forEach(a=>m[a]=0);SIMS.forEach(s=>AREAS.forEach(a=>{const c=s.a[a];if(c)m[a]+=c[0]-c[1]}));return m;}
+function classifiedByArea(a){return S.cls.filter(c=>c.area===a).length;}
+
+/* ---------- TEMAS / TODO ---------- */
+function temaMap(){
+ const m={};
+ S.cls.forEach(c=>{if(!KNOWLEDGE.includes(c.tipo))return;
+  const k=c.area+" · "+c.tema.toLowerCase();
+  if(!m[k])m[k]={area:c.area,tema:c.tema,n:0,w:0,types:{},subs:{},seq:[]};m[k].seq.push(c.tipo);
+  m[k].n++;m[k].w+=WEIGHT[c.tipo];m[k].types[c.tipo]=(m[k].types[c.tipo]||0)+1;
+  if(c.sub)m[k].subs[c.sub]=(m[k].subs[c.sub]||0)+1;});
+ return m;
+}
+const REINC_BOOST=.5; // cada revisão anterior que não segurou aumenta a prioridade em 50%
+const CONDUTA_REINC={
+ conteudo:["Voltou a errar: estude de novo, por outra fonte","A primeira revisão não fixou. Troque de material (outra aula ou livro) e feche com 10 questões."],
+ aplicacao:["Voltou a errar: questões de novo, agora espaçadas","Refaça as que errou daqui a 3 e 7 dias, sem olhar a resolução."],
+ interpretacao:["Voltou a errar: treine o enunciado deste tema","Grife o comando de cada questão e anote qual armadilha te pegou."],
+ banca:["Voltou a errar: monte um caderno de pegadinhas","Anote cada armadilha deste tema e releia antes da prova."]
+};
+function histOf(k){return (S.hist&&S.hist[k])||[];}
+function fmtDate(iso){if(!iso)return null;try{return new Date(iso).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}).replace('.','');}catch(e){return null}}
+function activeTemas(){
+ const m=temaMap();const arr=[];
+ Object.entries(m).forEach(([k,v])=>{
+  const h=histOf(k);const doneAt=h.length?h[h.length-1].at:null;
+  if(doneAt!=null && v.n<=doneAt)return; // revisado e sem erros novos
+  const reinc=h.length>0;
+  const novos=reinc?v.seq.slice(doneAt):v.seq;
+  const recup=v.w/v.n;
+  const ai=autoIncid(v.area,v.tema);
+  const inc = ai ? ai.tier : (S.incid[k]||null);
+  const incV = inc?INCID[inc]:1;
+  const cnt={};novos.forEach(t=>cnt[t]=(cnt[t]||0)+1);
+  let dom='conteudo',best=-1;Object.entries(cnt).forEach(([t,c])=>{if(c>best){best=c;dom=t}});
+  const boost=1+REINC_BOOST*h.length;
+  arr.push({k,area:v.area,tema:v.tema,n:v.n,recup,inc,incAuto:ai,dom,subs:v.subs,reinc,revs:h.length,novos:novos.length,lastRev:reinc?h[h.length-1].date:null,score:v.n*recup*incV*boost});
+ });
+ arr.sort((a,b)=>b.score-a.score);return arr;
+}
+function renderRevisados(){
+ const box=$('revisados');
+ const m=temaMap();
+ const items=Object.keys(S.hist||{}).filter(k=>m[k]&&histOf(k).length).map(k=>{
+  const h=histOf(k),v=m[k],last=h[h.length-1];
+  return {k,area:v.area,tema:v.tema,n:v.n,revs:h.length,last,back:v.n>last.at,novos:Math.max(v.n-last.at,0)};
+ });
+ if(!items.length){box.innerHTML="<p class='empty'>Nenhum tema revisado ainda. Quando um tema da fila é marcado como revisado, ele aparece aqui.</p>";return;}
+ items.sort((a,b)=>(b.back-a.back)||String(b.last.date||'').localeCompare(String(a.last.date||'')));
+ box.innerHTML=items.map(t=>{
+  const d=fmtDate(t.last.date);
+  const meta="revisado "+t.revs+"x"+(d?" · última em "+d:"")+" · "+t.n+" erro"+(t.n>1?"s":"")+" no total";
+  const st=t.back?"<span class='rev-st back'>voltou para a fila · +"+t.novos+"</span>":"<span class='rev-st ok'>em dia</span>";
+  return "<div class='rev'><div class='rev-ic"+(t.back?" back":"")+"'>"+(t.back?"↺":"✓")+"</div><div class='rev-body'><div class='rev-tema'>"+esc(t.tema)+" <span class='todo-area'>"+esc(t.area)+"</span></div><div class='rev-meta'>"+meta+"<button class='undo' data-undo=\""+esc(t.k)+"\">desfazer</button></div></div>"+st+"</div>";
+ }).join("");
+ box.querySelectorAll('[data-undo]').forEach(b=>b.addEventListener('click',()=>{if(RO)return;const k=b.dataset.undo;S.hist[k].pop();if(!S.hist[k].length)delete S.hist[k];saveAndRender();}));
+}
+function f_tier(t){return t==='alta'?'alta':t==='média'?'media':'baixa';}
+function shortExam(n){return n.replace(' — Medicina','').replace(' (USP)','').replace(' — Beneficência Portuguesa','');}
+function renderTodo(){
+ renderRevisados();
+ const box=$('todo');const arr=activeTemas();const anyClassified=state_hasClassified();
+ if(!arr.length){
+  if(anyClassified)box.innerHTML="<div class='cleared'><b>Fila limpa.</b> Todos os focos atuais foram revisados. Faça um <b>novo simulado</b>, registre os erros dele e os próximos temas aparecem aqui.</div>";
+  else box.innerHTML="<p class='empty'>A fila está vazia. Assim que os erros de um simulado forem registrados, os temas aparecem aqui — do mais urgente ao que pode esperar.</p>";
+ } else {
+  box.innerHTML=arr.map((t,i)=>{
+   const f=t.recup>=.75?["alta","alta"]:t.recup>=.55?["media","média"]:["baixa","baixa"];
+   const cond=t.reinc?(CONDUTA_REINC[t.dom]||CONDUTA[t.dom]):CONDUTA[t.dom];
+   let incHtml;
+   if(t.incAuto){incHtml="<span class='inc-auto inc-"+f_tier(t.incAuto.tier)+"'>incidência "+t.incAuto.tier+" · "+esc(t.incAuto.exams.map(shortExam).join(', '))+"</span>";}
+   else {const incBtns=["baixa","média","alta"].map(l=>"<button class='"+(t.inc===l?"on":"")+"' data-inc=\""+esc(t.k)+"\" data-lvl=\""+l+"\">"+l+"</button>").join("");incHtml="<span>incidência (defina):</span>"+incBtns;}
+   return "<div class='todo'><button class='check' data-done=\""+esc(t.k)+"\" data-n='"+t.n+"' title='marcar como revisado'>○</button>"+
+    "<div class='todo-body'><div class='todo-head'><span class='prio'>"+(i+1)+"</span><span class='todo-tema'>"+esc(t.tema)+"</span><span class='todo-area'>"+esc(t.area)+"</span></div>"+
+    (t.reinc?"<div class='reinc'>↺ reincidente · revisado "+t.revs+"x"+(t.lastRev?" (última em "+fmtDate(t.lastRev)+")":"")+" · +"+t.novos+" erro"+(t.novos>1?"s":"")+" depois</div>":"")+
+    "<div class='todo-cond'>"+cond[0]+"</div>"+(t.reinc?"<div class='todo-sub' style='font-style:normal'>"+cond[1]+"</div>":"")+
+    "<div class='todo-meta'><span class='chip "+f[0]+"'>recup. "+f[1]+"</span>"+t.n+" erro"+(t.n>1?"s":"")+" de conhecimento</div>"+
+    ((t.subs&&Object.keys(t.subs).length)?("<div class='todo-sub'>dentro: "+Object.entries(t.subs).sort(function(a,b){return b[1]-a[1];}).map(function(x){return esc(x[0])+" ("+x[1]+")";}).join(" · ")+"</div>"):"")+
+    "<div class='incid'>"+incHtml+"</div></div></div>";
+  }).join("");
+  box.querySelectorAll('[data-done]').forEach(b=>b.addEventListener('click',()=>{if(RO)return;const k=b.dataset.done;(S.hist[k]=S.hist[k]||[]).push({at:+b.dataset.n,date:new Date().toISOString()});saveAndRender();}));
+  box.querySelectorAll('[data-inc]').forEach(b=>b.addEventListener('click',()=>{if(RO)return;const k=b.dataset.inc,l=b.dataset.lvl;S.incid[k]=S.incid[k]===l?null:l;saveAndRender();}));
+ }
+ const exec=S.cls.filter(c=>c.tipo==="atencao"||c.tipo==="tempo");
+ const al=$('alert');
+ if(exec.length){const at=exec.filter(c=>c.tipo==="atencao").length,tp=exec.filter(c=>c.tipo==="tempo").length;
+  al.innerHTML="<div class='alert'><b>Alerta global — não é de tema.</b> "+exec.length+" erro"+(exec.length>1?"s":"")+" de execução ("+at+" de atenção, "+tp+" de tempo), espalhados. Não entram na fila porque não são de um tema — mas são os pontos mais baratos da prova. Conserto geral: checklist de revisão e gestão de tempo.</div>";
+ }else al.innerHTML='';
+}
+
+
+/* ---------- PROVAS OFICIAIS · ANO A ANO ---------- */
+// Linhas de cada vestibular: [chave, rótulo] para notas digitadas, [chave, rótulo, conta] para as calculadas.
+function anSum(v,ks){const xs=ks.map(k=>v[k]).filter(x=>x!=null);return xs.length?xs.reduce((a,b)=>a+b,0):null;}
+function anAvg(v,ks){const xs=ks.map(k=>v[k]).filter(x=>x!=null);return xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:null;}
+const ANUAL={
+ "ENEM":[["ling","Linguagens"],["hum","Ciências Humanas"],["nat","Ciências da Natureza"],["mat","Matemática"],["red","Redação"],
+  ["_media","Média simples",v=>anAvg(v,["ling","hum","nat","mat","red"])]],
+ "Fuvest (USP)":[["acertos","Acertos (1ª fase, de 90)"],["_pct","Porcentagem (%)",v=>v.acertos==null?null:v.acertos/90*100],["fase2","Nota 2ª fase"]],
+ "Einstein — Medicina":[["obj","Prova Objetiva"],["disc","Prova Discursiva"],["red","Redação"],
+  ["_tot","Total (0-100)",v=>anSum(v,["obj","disc","red"])],["col","Colocação"]],
+ "Unifesp — Medicina":[["enem","Enem padronizado"],["d1","Dia 1 (0-25)"],["d2","Dia 2 (0-25)"],["final","Nota final"],["col","Colocação"]]
+};
+const ANUAL_PADRAO=[["acertos","Acertos"],["nota","Nota final"],["col","Colocação"]];
+function anRows(prova){return ANUAL[prova]||ANUAL_PADRAO;}
+function anYears(){const y=new Date().getFullYear(),out=[];for(let i=y+1;i>=2020;i--){out.push(String(i));out.push(i+' (meio do ano)');}return out;}
+function anKey(ano){return (parseInt(ano,10)||0)+(/meio/.test(ano)?0.5:0);}
+function anFmt(x,k){if(x==null||isNaN(x))return '—';if(k==='col')return Math.round(x).toLocaleString('pt-BR');return (+x).toLocaleString('pt-BR',{maximumFractionDigits:2});}
+function anNum(t){t=String(t||'').trim().replace(/\s/g,'');if(!t)return null;if(/^\d{1,3}(\.\d{3})+$/.test(t))t=t.replace(/\./g,'');return parseFloat(t.replace(',','.'));}
+function renderAnual(){
+ const box=$('anualtabs');const list=(S.anuais||[]);
+ const provas=EXAMS.map(e=>e.name).filter(n=>list.some(x=>x.prova===n));
+ list.forEach(x=>{if(provas.indexOf(x.prova)<0)provas.push(x.prova);});
+ if(!provas.length){box.innerHTML="<p class='empty'>Nenhum resultado lançado ainda."+(RO?"":" Use o formulário abaixo para guardar as notas de cada ano.")+"</p>";}
+ else box.innerHTML=provas.map(pv=>{
+  const cols=list.filter(x=>x.prova===pv).sort((a,b)=>anKey(a.ano)-anKey(b.ano));
+  const rows=anRows(pv);
+  let h="<div class='anprova'><h3>"+esc(pv)+"</h3><div class='board-scroll'><table class='antable'><thead><tr><th></th>"+
+   cols.map(c=>"<th>"+esc(c.ano)+"<button class='rm' data-anrm=\""+esc(pv+'|'+c.ano)+"\" title='Apagar este ano'>×</button></th>").join('')+"</tr></thead><tbody>";
+  rows.forEach(r=>{
+   const vals=cols.map(c=>r[2]?r[2](c.v||{}):(c.v||{})[r[0]]);
+   if(!r[2]&&vals.every(x=>x==null))return; // linha sem nenhum valor
+   h+="<tr"+(r[2]?" class='calc'":"")+"><td>"+esc(r[1])+"</td>"+vals.map(x=>"<td>"+anFmt(x,r[0])+"</td>").join('')+"</tr>";
+  });
+  return h+"</tbody></table></div></div>";
+ }).join('');
+ box.querySelectorAll('[data-anrm]').forEach(b=>b.addEventListener('click',async()=>{
+  if(RO)return;const [pv,ano]=b.dataset.anrm.split('|');
+  if(!await ask('Apagar o resultado de '+pv+' em '+ano+'?','Apagar'))return;
+  S.anuais=S.anuais.filter(x=>!(x.prova===pv&&x.ano===ano));saveAndRender();buildAnualForm(true);
+ }));
+}
+function buildAnualForm(keep){
+ const pSel=$('anprova'),aSel=$('anano');
+ const prevP=keep?pSel.value:'',prevA=keep?aSel.value:'';
+ const mine=(profile&&profile.exams||[]).map(e=>e.name);
+ const order=mine.concat(EXAMS.map(e=>e.name).filter(n=>mine.indexOf(n)<0));
+ pSel.innerHTML=order.map(n=>"<option value=\""+esc(n)+"\">"+esc(n)+"</option>").join('');
+ aSel.innerHTML=anYears().map(y=>"<option value=\""+y+"\">"+y+"</option>").join('');
+ if(prevP)pSel.value=prevP;
+ aSel.value=prevA||String(new Date().getFullYear());
+ fillAnualFields();
+}
+function fillAnualFields(){
+ const pv=$('anprova').value,ano=$('anano').value;
+ const cur=(S.anuais||[]).find(x=>x.prova===pv&&x.ano===ano);
+ $('anfields').innerHTML=anRows(pv).filter(r=>!r[2]).map(r=>{
+  const v=cur&&cur.v&&cur.v[r[0]]!=null?String(cur.v[r[0]]).replace('.',','):'';
+  return "<div class='simcell'><label for='an_"+r[0]+"'>"+esc(r[1])+"</label><input class='an' type='text' inputmode='decimal' id='an_"+r[0]+"' data-k='"+r[0]+"' value=\""+esc(v)+"\"></div>";
+ }).join('');
+ $('anadd').textContent=cur?'Atualizar resultado':'Salvar resultado';
+ $('anerr').textContent='';$('anok').textContent='';
+}
+$('anprova').addEventListener('change',fillAnualFields);
+$('anano').addEventListener('change',fillAnualFields);
+$('anadd').addEventListener('click',()=>{
+ if(RO)return;
+ const pv=$('anprova').value,ano=$('anano').value,err=$('anerr');err.textContent='';$('anok').textContent='';
+ const v={};let any=false;
+ for(const inp of $('anfields').querySelectorAll('input[data-k]')){
+  if(!inp.value.trim())continue;
+  const n=anNum(inp.value);
+  if(isNaN(n)){err.textContent='Confira o valor de "'+inp.previousElementSibling.textContent+'".';return;}
+  v[inp.dataset.k]=n;any=true;
+ }
+ if(!any){err.textContent='Preencha ao menos uma nota.';return;}
+ S.anuais=(S.anuais||[]).filter(x=>!(x.prova===pv&&x.ano===ano));
+ S.anuais.push({prova:pv,ano,v});
+ saveAndRender();fillAnualFields();$('anok').textContent='Salvo: '+pv+' · '+ano+'.';
+});
+
+/* ---------- ADD SIMULADO ---------- */
+function buildSimForm(){
+ const f=$('simform');
+ let h="<div class='simhead'><input type='text' id='sfdate' placeholder='Data (ex: 12/set)'><input type='text' id='sfname' placeholder='Nome do simulado'></div><div class='simgrid'>";
+ AREAS.forEach((a,i)=>{h+="<div class='simcell'><label>"+esc(a)+"</label><div class='qa'><div><div class='cap'>Quest.</div><input type='number' inputmode='numeric' min='0' id='sfq"+i+"'></div><div><div class='cap'>Acertos</div><input type='number' inputmode='numeric' min='0' id='sfa"+i+"'></div></div></div>";});
+ h+="</div><div class='cta'><button class='addbtn' id='sfadd'>Adicionar simulado</button> <span class='err' id='sferr'></span></div>";
+ f.innerHTML=h;$('sfadd').addEventListener('click',addSim);
+}
+function addSim(){
+ const name=($('sfname').value||'').trim();
+ const date=($('sfdate').value||'').trim();
+ const err=$('sferr');err.textContent='';
+ const a={};let any=false;
+ for(let i=0;i<AREAS.length;i++){
+  const qv=$('sfq'+i).value,av=$('sfa'+i).value;
+  if(qv===''&&av==='')continue;
+  const q=parseInt(qv||'0',10),ac=parseInt(av||'0',10);
+  if(isNaN(q)||q<=0){err.textContent='Confira as questões de '+AREAS[i]+'.';return;}
+  if(isNaN(ac)||ac<0||ac>q){err.textContent='Em '+AREAS[i]+', acertos não pode passar das questões.';return;}
+  a[AREAS[i]]=[q,ac];any=true;
+ }
+ if(!any){err.textContent='Preencha ao menos uma área.';return;}
+ SIMS.push({date:date||'—',name:name||('Simulado '+(SIMS.length+1)),a});saveAndRender();buildSimForm();
+}
+
+/* ---------- ADD ERRO ---------- */
+function buildAreaSelect(){
+ const sel=$('area');const eb=errorsByArea();
+ const opts=AREAS.filter(a=>eb[a]>0).map(a=>{const left=eb[a]-classifiedByArea(a);
+  return "<option value='"+esc(a)+"'"+(left<=0?" disabled":"")+">"+esc(a)+" — "+Math.max(left,0)+" erro"+(left===1?"":"s")+" a classificar</option>";});
+ sel.innerHTML=opts.length?opts.join(''):"<option value='' disabled selected>adicione um simulado primeiro</option>";
+ updateLeft();fillTemas(sel.value);
+}
+function updateLeft(){const a=$('area').value;if(!a){$('leftcount').textContent='';return;}
+ const eb=errorsByArea();$('leftcount').textContent='· '+Math.max(eb[a]-classifiedByArea(a),0)+' restantes nesta área';}
+function fillTemas(area){
+ const sel=$('tema');
+ const temas=(TEMAS[area]||[]).slice().sort(function(a,b){return a.localeCompare(b);});
+ let h="<option value='' disabled selected>selecione o tema</option>";
+ temas.forEach(function(t){h+="<option value=\""+esc(t)+"\">"+esc(t)+"</option>";});
+ h+="<option value='__outro__'>Outro (especificar)…</option>";
+ sel.innerHTML=h;
+ $('temaOutro').style.display='none';$('temaOutro').value='';
+ $('subtema').value='';
+}
+let cur={q1:null,tipo:null};
+function resetCard(){cur={q1:null,tipo:null};
+ document.querySelectorAll('[data-q1]').forEach(b=>b.classList.remove('on'));
+ document.querySelectorAll('[data-tipo]').forEach(b=>b.classList.remove('on'));
+ $('q2wrap').style.display='none';$('conduta').style.display='none';
+ $('reg').disabled=true;$('regerr').textContent='';}
+function showConduta(tipo){cur.tipo=tipo;const c=CONDUTA[tipo];
+ $('cond-area').textContent='conduta — '+TIPONAME[tipo];
+ $('cond-title').textContent=c[0];$('cond-desc').textContent=c[1];
+ $('cond-recup').textContent = RECUP_TXT[tipo] ? RECUP_TXT[tipo] : 'não entra na fila (erro de execução)';
+ $('conduta').style.display='block';$('reg').disabled=false;}
+document.querySelectorAll('[data-q1]').forEach(b=>b.addEventListener('click',()=>{
+ document.querySelectorAll('[data-q1]').forEach(x=>x.classList.remove('on'));b.classList.add('on');cur.q1=b.dataset.q1;
+ document.querySelectorAll('[data-tipo]').forEach(x=>x.classList.remove('on'));
+ if(cur.q1==='naosabia'){$('q2wrap').style.display='none';showConduta('conteudo');}
+ else{$('q2wrap').style.display='block';$('conduta').style.display='none';$('reg').disabled=true;cur.tipo=null;}
+}));
+document.querySelectorAll('[data-tipo]').forEach(b=>b.addEventListener('click',()=>{
+ document.querySelectorAll('[data-tipo]').forEach(x=>x.classList.remove('on'));b.classList.add('on');showConduta(b.dataset.tipo);
+}));
+$('area').addEventListener('change',function(){updateLeft();fillTemas(this.value);});
+$('tema').addEventListener('change',function(){$('regerr').textContent='';$('temaOutro').style.display=this.value==='__outro__'?'block':'none';});
+$('reg').addEventListener('click',()=>{
+ if(RO)return;
+ const selT=$('tema').value;
+ const tema = selT==='__outro__' ? $('temaOutro').value.trim() : selT;
+ const area=$('area').value;
+ const sub=($('subtema').value||'').trim();
+ if(!area){$('regerr').textContent='Adicione um simulado primeiro.';return;}
+ if(!tema){$('regerr').textContent='Selecione ou escreva o tema.';return;}
+ if(!cur.tipo){$('regerr').textContent='Responda as perguntas.';return;}
+ S.cls.push({area,tema,tipo:cur.tipo,sub:sub||null});save();resetCard();
+ buildAreaSelect();$('area').value=area;if(!$('area').value)$('area').selectedIndex=0;
+ fillTemas($('area').value);updateLeft();renderTodo();renderHero();
+});
+
+/* ---------- DADOS DA VERSÃO ANTIGA (localStorage) ---------- */
+function legacyData(){
+ try{
+  if(localStorage.getItem('mira_legacy_done'))return null;
+  const sims=JSON.parse(localStorage.getItem('mira_sims')||'[]')||[];
+  const st=JSON.parse(localStorage.getItem('mira_state')||'null');
+  const ncls=st&&Array.isArray(st.cls)?st.cls.length:0;
+  if(!sims.length&&!ncls)return null;
+  return{sims,state:st,ncls};
+ }catch(e){return null}
+}
+$('importold').addEventListener('click',async()=>{
+ const L=legacyData();if(!L)return;
+ const names=L.sims.map(s=>'• '+s.name+' ('+s.date+')').join('\n');
+ if(!await ask('Encontrei neste navegador, da versão antiga do Mira:\n'+L.sims.length+' simulado(s) e '+L.ncls+' erro(s) classificado(s).\n\n'+names+'\n\nTrazer para a sua conta?','Trazer'))return;
+ L.sims.forEach(t=>{if(!SIMS.some(s=>String(s.name).toLowerCase()===String(t.name).toLowerCase()&&s.date===t.date))SIMS.push(t);});
+ if(!S.cls.length&&L.ncls)S=normState(L.state);
+ try{localStorage.setItem('mira_legacy_done','1')}catch(e){}
+ $('importold').style.display='none';
+ saveAndRender();
+});
+$('reset').addEventListener('click',async()=>{
+ if(!await ask('Isso apaga todos os seus simulados, erros e revisões da sua conta. Continuar?','Apagar tudo'))return;
+ SIMS=[];S=emptyState();saveAndRender();
+});
+
+/* ---------- PAINEL DA PROFESSORA ---------- */
+function withStudent(st,fn){
+ const b=[profile,SIMS,S];profile=st.profile;SIMS=st.sims;S=st.state;
+ try{return fn();}finally{profile=b[0];SIMS=b[1];S=b[2];}
+}
+function ago(iso){if(!iso)return '—';const d=Math.floor((Date.now()-new Date(iso).getTime())/86400000);return d<=0?'hoje':d===1?'ontem':'há '+d+' dias';}
+async function loadClass(){
+ $('terr').textContent='';
+ $('tlist').innerHTML="<tbody><tr><td class='empty'>Carregando…</td></tr></tbody>";
+ const [p,d]=await Promise.all([sb.from('profiles').select('*'),sb.from('student_data').select('*')]);
+ if(p.error||d.error){$('tlist').innerHTML='';$('terr').textContent='Não consegui carregar a turma: '+(p.error||d.error).message;return;}
+ const dm={};(d.data||[]).forEach(r=>dm[r.user_id]=r);
+ CLASS=(p.data||[]).filter(x=>!x.is_teacher).map(pr=>{
+  const r=dm[pr.id]||{};
+  const st={profile:pr,sims:Array.isArray(r.sims)?r.sims:[],state:normState(r.state),updated:r.updated_at||pr.created_at};
+  st.sum=withStudent(st,()=>{const {tq,ta}=totals();const t=activeTemas();
+   return{pct:tq?Math.round(ta/tq*100):null,fila:t.length,top:t.slice(0,3).map(x=>x.tema),nerr:S.cls.length};});
+  return st;
+ });
+ CLASS.sort((a,b)=>(a.sum.pct==null)-(b.sum.pct==null)||(a.sum.pct-b.sum.pct));
+ renderClass();
+}
+function renderClass(){
+ const q=($('tsearch').value||'').trim().toLowerCase();
+ const withPct=CLASS.filter(s=>s.sum.pct!=null);
+ const avg=withPct.length?Math.round(withPct.reduce((x,s)=>x+s.sum.pct,0)/withPct.length):null;
+ const active=CLASS.filter(s=>s.updated&&(Date.now()-new Date(s.updated).getTime())<7*86400000).length;
+ const nsims=CLASS.reduce((x,s)=>x+s.sims.length,0);
+ $('tstats').innerHTML="<div><b>"+CLASS.length+"</b>aluno"+(CLASS.length===1?'':'s')+"</div><div><b>"+active+"</b>ativos nos últimos 7 dias</div><div><b>"+(avg==null?'—':avg+'%')+"</b>acerto médio</div><div><b>"+nsims+"</b>simulados lançados</div>";
+ const rows=CLASS.filter(s=>!q||String(s.profile.name||'').toLowerCase().includes(q)||String(s.profile.email||'').toLowerCase().includes(q));
+ if(!CLASS.length){$('tlist').innerHTML="<tbody><tr><td class='empty'>Nenhum aluno cadastrado ainda. Mande o link do site para a turma criar as contas.</td></tr></tbody>";return;}
+ let h="<thead><tr><th>Aluno</th><th>Provas</th><th>Simulados</th><th>% acerto</th><th>Erros</th><th>Fila de revisão</th><th>Última atividade</th></tr></thead><tbody>";
+ rows.forEach(s=>{
+  const p=s.profile,m=s.sum;
+  h+="<tr data-sid=\""+esc(p.id)+"\"><td><span class='simname'>"+esc(p.name||'(sem nome)')+"</span><br><span class='simdate'>"+esc(p.email||'')+"</span></td>"+
+   "<td class='tfoc'>"+esc((p.exams||[]).map(e=>shortExam(e.name)).join(', ')||'—')+"</td>"+
+   "<td>"+s.sims.length+"</td>"+
+   "<td class='"+(m.pct!=null&&m.pct<60?'low':'tot')+"'>"+(m.pct==null?'—':m.pct+'%')+"</td>"+
+   "<td>"+m.nerr+"</td>"+
+   "<td class='tfoc'>"+(m.fila?("<b>"+m.fila+"</b> · "+esc(m.top.join(', '))):'—')+"</td>"+
+   "<td>"+ago(s.updated)+"</td></tr>";
+ });
+ if(!rows.length)h+="<tr><td class='empty' colspan='7'>Ninguém com esse nome.</td></tr>";
+ h+="</tbody>";$('tlist').innerHTML=h;
+ $('tlist').querySelectorAll('[data-sid]').forEach(tr=>tr.addEventListener('click',()=>openStudent(tr.dataset.sid)));
+}
+$('tsearch').addEventListener('input',renderClass);
+$('treload').addEventListener('click',loadClass);
+function openStudent(id){
+ const st=CLASS.find(s=>s.profile.id===id);if(!st)return;
+ RO=true;profile=st.profile;SIMS=st.sims;S=st.state;
+ $('roname').textContent=st.profile.name||st.profile.email||'aluno';
+ show('app');renderAll();
+}
+function backToClass(){RO=false;profile=ME.profile;SIMS=[];S=emptyState();show('teacher');renderClass();}
+$('roback').addEventListener('click',backToClass);
+$('ubteacher').addEventListener('click',()=>{RO=false;profile=ME.profile;show('teacher');loadClass();});
+
+/* ---------- LOGIN ---------- */
+let authMode='in';
+function setAuthMode(m){
+ authMode=m;
+ document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===m));
+ $('au-namewrap').style.display=m==='up'?'block':'none';
+ $('au-privacy').style.display=m==='up'?'block':'none';
+ $('au-forgot').style.display=m==='in'?'inline':'none';
+ $('au-go').textContent=m==='up'?'Criar conta':'Entrar';
+ $('au-pass').autocomplete=m==='up'?'new-password':'current-password';
+ $('au-err').textContent='';$('au-ok').textContent='';
+}
+document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>setAuthMode(b.dataset.tab)));
+function authMsg(e){
+ const m=(e&&e.message)||String(e);
+ if(/invalid login credentials/i.test(m))return 'E-mail ou senha incorretos.';
+ if(/already registered|already been registered/i.test(m))return 'Esse e-mail já tem conta — use "Entrar".';
+ if(/password should be at least/i.test(m))return 'A senha precisa ter pelo menos 6 caracteres.';
+ if(/email not confirmed/i.test(m))return 'Falta confirmar o e-mail — abra a mensagem que enviamos para você.';
+ if(/rate limit|too many/i.test(m))return 'Muitas tentativas seguidas. Espere alguns minutos e tente de novo.';
+ if(/invalid.*email|email.*invalid/i.test(m))return 'Esse e-mail não parece válido.';
+ if(/failed to fetch|network/i.test(m))return 'Sem conexão. Confira sua internet.';
+ return 'Algo deu errado: '+m;
+}
+async function doAuth(){
+ const email=$('au-email').value.trim(),pass=$('au-pass').value,name=$('au-name').value.trim();
+ const err=$('au-err'),ok=$('au-ok');err.textContent='';ok.textContent='';
+ if(authMode==='up'&&!name){err.textContent='Escreva seu nome.';return;}
+ if(!email){err.textContent='Escreva seu e-mail.';return;}
+ if(pass.length<6){err.textContent='A senha precisa ter pelo menos 6 caracteres.';return;}
+ const btn=$('au-go');btn.disabled=true;
+ try{
+  if(authMode==='up'){
+   const {data,error}=await sb.auth.signUp({email,password:pass,options:{data:{name}}});
+   if(error){err.textContent=authMsg(error);return;}
+   if(!data.session){setAuthMode('in');$('au-ok').textContent='Conta criada! Confirme pelo e-mail que enviamos e depois entre aqui.';}
+  }else{
+   const {error}=await sb.auth.signInWithPassword({email,password:pass});
+   if(error){err.textContent=authMsg(error);return;}
+  }
+ }catch(e){err.textContent=authMsg(e);}
+ finally{btn.disabled=false;}
+}
+$('au-go').addEventListener('click',doAuth);
+$('au-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doAuth();});
+$('au-forgot').addEventListener('click',async()=>{
+ const email=$('au-email').value.trim(),err=$('au-err'),ok=$('au-ok');err.textContent='';ok.textContent='';
+ if(!email){err.textContent='Escreva seu e-mail acima e toque de novo em "esqueci minha senha".';return;}
+ const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+ if(error){err.textContent=authMsg(error);return;}
+ ok.textContent='Se esse e-mail tiver conta, enviamos um link para criar uma nova senha.';
+});
+$('rc-go').addEventListener('click',async()=>{
+ const pass=$('rc-pass').value,err=$('rc-err');err.textContent='';
+ if(pass.length<6){err.textContent='A senha precisa ter pelo menos 6 caracteres.';return;}
+ const {error}=await sb.auth.updateUser({password:pass});
+ if(error){err.textContent=authMsg(error);return;}
+ recovering=false;history.replaceState(null,'',location.pathname);
+ const {data}=await sb.auth.getSession();
+ if(data.session){loadedFor=data.session.user.id;loadUser(data.session.user);}else show('auth');
+});
+$('ublogout').addEventListener('click',async()=>{await flush();await sb.auth.signOut();});
+
+/* ---------- ORQUESTRAÇÃO ---------- */
+function renderAll(){buildBoard();renderAnual();buildAreaSelect();renderTodo();renderHero();}
+function saveAndRender(){save();renderAll();}
+function showApp(){
+ show('app');buildSimForm();buildAnualForm();renderAll();
+ $('importold').style.display=(!RO&&legacyData())?'inline-block':'none';
+}
+function loadingError(msg){
+ $('v-loading').innerHTML="<section><p class='err'>"+esc(msg)+"</p><div class='cta'><button class='primary' onclick='location.reload()'>Tentar de novo</button></div></section>";
+ show('loading');
+}
+async function loadUser(user){
+ show('loading');ME.user=user;RO=false;
+ $('ubemail').textContent=user.email||'';$('userbar').style.display='flex';
+ const [p,d]=await Promise.all([
+  sb.from('profiles').select('*').eq('id',user.id).maybeSingle(),
+  sb.from('student_data').select('*').eq('user_id',user.id).maybeSingle()
+ ]);
+ if(p.error||d.error){console.error(p.error||d.error);loadingError('Não consegui carregar seus dados. Confira sua internet.');return;}
+ ME.profile=p.data||{id:user.id,email:user.email,name:(user.user_metadata&&user.user_metadata.name)||'',exams:[],is_teacher:false};
+ profile=ME.profile;
+ SIMS=(d.data&&Array.isArray(d.data.sims))?d.data.sims:[];
+ S=normState(d.data&&d.data.state);
+ setSync('tudo salvo');
+ $('ubteacher').style.display=ME.profile.is_teacher?'inline-block':'none';
+ if(ME.profile.is_teacher){show('teacher');loadClass();return;}
+ if(!ME.profile.exams||!ME.profile.exams.length){showOnboarding();return;}
+ showApp();
+}
+let recovering=false,loadedFor=null;
+async function onAuth(ev,session){
+ if(ev==='PASSWORD_RECOVERY'){recovering=true;show('recovery');return;}
+ if(!session){
+  ME={user:null,profile:null};loadedFor=null;RO=false;profile=null;SIMS=[];S=emptyState();dirty=false;
+  $('userbar').style.display='none';setAuthMode('in');show('auth');return;
+ }
+ if(recovering||loadedFor===session.user.id)return; // renovação de token etc.
+ loadedFor=session.user.id;
+ await loadUser(session.user);
+}
+function configured(){return /^https:\/\//.test(SUPABASE_URL)&&!/COLE_AQUI/.test(SUPABASE_ANON_KEY);}
+(function boot(){
+ if(!configured()){show('setup');return;}
+ if(!window.supabase){loadingError('Não consegui carregar o Mira. Confira sua internet.');return;}
+ sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+ sb.auth.onAuthStateChange((ev,session)=>{setTimeout(()=>onAuth(ev,session),0);});
+})();
+</script>
+</body>
+</html>
