@@ -74,6 +74,14 @@ tbody tr td{border-bottom:1px solid var(--line)}
 .simdate{color:var(--muted);font-size:12.5px}
 .tot{font-weight:700}
 .pct{font-weight:700;color:var(--terra)}
+.subitems{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.subitem{display:flex;gap:12px;align-items:flex-start;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.check.sm{width:24px;height:24px;font-size:12px;margin-top:1px}
+.subbody{flex:1;min-width:0}
+.subname{font-weight:700;font-size:15px}
+.subname .cnt{font-weight:400;font-size:12.5px;color:var(--muted)}
+.subcond{font-size:14px;margin-top:2px}
+.reinc.sm{margin-top:0;font-size:11.5px;padding:1px 8px;vertical-align:1px}
 .cpct{display:block;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .cpct.low{color:var(--terra);font-weight:700}
 #board tfoot td{font-weight:700;border-top:2px solid var(--line)}
@@ -427,10 +435,10 @@ let S=emptyState();
 let RO=false;                      // tutor vendo o painel de um aluno (somente leitura)
 let CLASS=[];                      // turma carregada no painel do tutor
 
-function emptyState(){return{cls:[],incid:{},hist:{},anuais:[]};}
+function emptyState(){return{cls:[],incid:{},hist:{},subhist:{},anuais:[]};}
 function normState(s){
  s=s||{};
- const o={cls:Array.isArray(s.cls)?s.cls:[],incid:s.incid||{},hist:s.hist||{},anuais:Array.isArray(s.anuais)?s.anuais:[]};
+ const o={cls:Array.isArray(s.cls)?s.cls:[],incid:s.incid||{},hist:s.hist||{},subhist:s.subhist||{},anuais:Array.isArray(s.anuais)?s.anuais:[]};
  if(s.done)Object.keys(s.done).forEach(k=>{if(s.done[k]!=null&&!o.hist[k])o.hist[k]=[{at:s.done[k],date:null}];});
  return o;
 }
@@ -710,9 +718,12 @@ function temaMap(){
  const m={};
  S.cls.forEach(c=>{if(!KNOWLEDGE.includes(c.tipo))return;
   const k=c.area+" · "+c.tema.toLowerCase();
-  if(!m[k])m[k]={area:c.area,tema:c.tema,n:0,w:0,types:{},subs:{},seq:[]};m[k].seq.push(c.tipo);
-  m[k].n++;m[k].w+=WEIGHT[c.tipo];m[k].types[c.tipo]=(m[k].types[c.tipo]||0)+1;
-  if(c.sub)m[k].subs[c.sub]=(m[k].subs[c.sub]||0)+1;});
+  if(!m[k])m[k]={area:c.area,tema:c.tema,n:0,w:0,types:{},subs:{},seq:[],errs:[],subN:{},subLabel:{}};
+  const v=m[k];const sub=(c.sub||'').trim(),sk=sub.toLowerCase();
+  v.errs.push({tipo:c.tipo,sk,ti:v.n,si:v.subN[sk]||0});
+  v.subN[sk]=(v.subN[sk]||0)+1;if(!(sk in v.subLabel))v.subLabel[sk]=sub;
+  v.seq.push(c.tipo);v.n++;v.w+=WEIGHT[c.tipo];v.types[c.tipo]=(v.types[c.tipo]||0)+1;
+  if(sub)v.subs[sub]=(v.subs[sub]||0)+1;});
  return m;
 }
 const REINC_BOOST=.5; // cada revisão anterior que não segurou aumenta a prioridade em 50%
@@ -723,41 +734,64 @@ const CONDUTA_REINC={
  banca:["Voltou a errar: monte um caderno de pegadinhas","Anote cada armadilha deste tema e releia antes da prova."]
 };
 function histOf(k){return (S.hist&&S.hist[k])||[];}
+function subKey(k,sk){return k+"|"+sk;}
+function subHistOf(k,sk){return (S.subhist&&S.subhist[subKey(k,sk)])||[];}
+function lastAt(h){return h.length?h[h.length-1].at:0;}
+function domOf(tipos){const cnt={};tipos.forEach(t=>cnt[t]=(cnt[t]||0)+1);let dom='conteudo',best=-1;Object.entries(cnt).forEach(([t,c])=>{if(c>best){best=c;dom=t}});return dom;}
 function fmtDate(iso){if(!iso)return null;try{return new Date(iso).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}).replace('.','');}catch(e){return null}}
+// Um erro sai da fila quando o tema inteiro foi marcado depois dele, ou quando o subtema dele foi.
 function activeTemas(){
  const m=temaMap();const arr=[];
  Object.entries(m).forEach(([k,v])=>{
-  const h=histOf(k);const doneAt=h.length?h[h.length-1].at:null;
-  if(doneAt!=null && v.n<=doneAt)return; // revisado e sem erros novos
-  const reinc=h.length>0;
-  const novos=reinc?v.seq.slice(doneAt):v.seq;
+  const th=histOf(k),tAt=lastAt(th);
+  const pend=v.errs.filter(e=>!(e.ti<tAt||e.si<lastAt(subHistOf(k,e.sk))));
+  if(!pend.length)return; // tudo revisado e sem erros novos
+  const groups={};
+  pend.forEach(e=>{(groups[e.sk]=groups[e.sk]||[]).push(e.tipo);});
+  const glist=Object.entries(groups).map(([sk,tipos])=>{
+   const sh=subHistOf(k,sk);const hs=th.concat(sh);
+   const last=hs.reduce((a,b)=>(!a||String(b.date||'')>String(a.date||''))?b:a,null);
+   return{sk,label:v.subLabel[sk],pend:tipos.length,total:v.subN[sk],dom:domOf(tipos),
+    reinc:sh.length>0||th.length>0,revs:Math.max(sh.length,th.length),lastRev:last?last.date:null};
+  }).sort((a,b)=>(a.sk==='')-(b.sk==='')||b.pend-a.pend);
+  const revs=Math.max(...glist.map(g=>g.revs));
+  const reinc=glist.some(g=>g.reinc);
   const recup=v.w/v.n;
   const ai=autoIncid(v.area,v.tema);
   const inc = ai ? ai.tier : (S.incid[k]||null);
   const incV = inc?INCID[inc]:1;
-  const cnt={};novos.forEach(t=>cnt[t]=(cnt[t]||0)+1);
-  let dom='conteudo',best=-1;Object.entries(cnt).forEach(([t,c])=>{if(c>best){best=c;dom=t}});
-  const boost=1+REINC_BOOST*h.length;
-  arr.push({k,area:v.area,tema:v.tema,n:v.n,recup,inc,incAuto:ai,dom,subs:v.subs,reinc,revs:h.length,novos:novos.length,lastRev:reinc?h[h.length-1].date:null,score:v.n*recup*incV*boost});
+  const boost=1+REINC_BOOST*revs;
+  const tReinc=th.length>0;
+  arr.push({k,area:v.area,tema:v.tema,n:v.n,recup,inc,incAuto:ai,dom:domOf(pend.map(e=>e.tipo)),subs:v.subs,groups:glist,
+   reinc,revs,novos:pend.length,lastRev:tReinc?th[th.length-1].date:(glist.find(g=>g.lastRev)||{}).lastRev||null,score:v.n*recup*incV*boost});
  });
  arr.sort((a,b)=>b.score-a.score);return arr;
 }
 function renderRevisados(){
  const box=$('revisados');
  const m=temaMap();
- const items=Object.keys(S.hist||{}).filter(k=>m[k]&&histOf(k).length).map(k=>{
+ const items=[];
+ Object.keys(S.hist||{}).filter(k=>m[k]&&histOf(k).length).forEach(k=>{
   const h=histOf(k),v=m[k],last=h[h.length-1];
-  return {k,area:v.area,tema:v.tema,n:v.n,revs:h.length,last,back:v.n>last.at,novos:Math.max(v.n-last.at,0)};
+  items.push({key:k,kind:'tema',area:v.area,tema:v.tema,n:v.n,revs:h.length,last,back:v.n>last.at,novos:Math.max(v.n-last.at,0)});
  });
- if(!items.length){box.innerHTML="<p class='empty'>Nenhum tema revisado ainda. Quando um tema da fila é marcado como revisado, ele aparece aqui.</p>";return;}
+ Object.keys(S.subhist||{}).forEach(key=>{
+  const h=S.subhist[key];if(!h||!h.length)return;
+  const cut=key.lastIndexOf('|'),k=key.slice(0,cut),sk=key.slice(cut+1),v=m[k];if(!v||!(sk in v.subN))return;
+  const last=h[h.length-1],n=v.subN[sk];
+  items.push({key,kind:'sub',area:v.area,tema:v.tema+" › "+(v.subLabel[sk]||"sem subtema"),n,revs:h.length,last,back:n>last.at,novos:Math.max(n-last.at,0)});
+ });
+ if(!items.length){box.innerHTML="<p class='empty'>Nenhum tema revisado ainda. Quando um tema ou subtema da fila é marcado como revisado, ele aparece aqui.</p>";return;}
  items.sort((a,b)=>(b.back-a.back)||String(b.last.date||'').localeCompare(String(a.last.date||'')));
  box.innerHTML=items.map(t=>{
   const d=fmtDate(t.last.date);
   const meta="revisado "+t.revs+"x"+(d?" · última em "+d:"")+" · "+t.n+" erro"+(t.n>1?"s":"")+" no total";
   const st=t.back?"<span class='rev-st back'>voltou para a fila · +"+t.novos+"</span>":"<span class='rev-st ok'>em dia</span>";
-  return "<div class='rev'><div class='rev-ic"+(t.back?" back":"")+"'>"+(t.back?"↺":"✓")+"</div><div class='rev-body'><div class='rev-tema'>"+esc(t.tema)+" <span class='todo-area'>"+esc(t.area)+"</span></div><div class='rev-meta'>"+meta+"<button class='undo' data-undo=\""+esc(t.k)+"\">desfazer</button></div></div>"+st+"</div>";
+  return "<div class='rev'><div class='rev-ic"+(t.back?" back":"")+"'>"+(t.back?"↺":"✓")+"</div><div class='rev-body'><div class='rev-tema'>"+esc(t.tema)+" <span class='todo-area'>"+esc(t.area)+"</span></div><div class='rev-meta'>"+meta+"<button class='undo' data-undo=\""+esc(t.key)+"\" data-kind='"+t.kind+"'>desfazer</button></div></div>"+st+"</div>";
  }).join("");
- box.querySelectorAll('[data-undo]').forEach(b=>b.addEventListener('click',()=>{if(RO)return;const k=b.dataset.undo;S.hist[k].pop();if(!S.hist[k].length)delete S.hist[k];saveAndRender();}));
+ box.querySelectorAll('[data-undo]').forEach(b=>b.addEventListener('click',()=>{if(RO)return;
+  const key=b.dataset.undo,store=b.dataset.kind==='sub'?S.subhist:S.hist;
+  store[key].pop();if(!store[key].length)delete store[key];saveAndRender();}));
 }
 function f_tier(t){return t==='alta'?'alta':t==='média'?'media':'baixa';}
 function shortExam(n){return n.replace(' — Medicina','').replace(' (USP)','').replace(' — Beneficência Portuguesa','');}
@@ -771,18 +805,26 @@ function renderTodo(){
   box.innerHTML=arr.map((t,i)=>{
    const f=t.recup>=.75?["alta","alta"]:t.recup>=.55?["media","média"]:["baixa","baixa"];
    const cond=t.reinc?(CONDUTA_REINC[t.dom]||CONDUTA[t.dom]):CONDUTA[t.dom];
+   const bySub=!(t.groups.length===1&&t.groups[0].sk==='');
    let incHtml;
    if(t.incAuto){incHtml="<span class='inc-auto inc-"+f_tier(t.incAuto.tier)+"'>incidência "+t.incAuto.tier+" · "+esc(t.incAuto.exams.map(shortExam).join(', '))+"</span>";}
    else {const incBtns=["baixa","média","alta"].map(l=>"<button class='"+(t.inc===l?"on":"")+"' data-inc=\""+esc(t.k)+"\" data-lvl=\""+l+"\">"+l+"</button>").join("");incHtml="<span>incidência (defina):</span>"+incBtns;}
-   return "<div class='todo'><button class='check' data-done=\""+esc(t.k)+"\" data-n='"+t.n+"' title='marcar como revisado'>○</button>"+
+   const subHtml=bySub?("<div class='subitems'>"+t.groups.map(g=>{
+     const c=g.reinc?(CONDUTA_REINC[g.dom]||CONDUTA[g.dom]):CONDUTA[g.dom];
+     return "<div class='subitem'><button class='check sm' data-subdone=\""+esc(t.k)+"\" data-sk=\""+esc(g.sk)+"\" data-n='"+g.total+"' title='marcar este subtema como revisado'>○</button>"+
+      "<div class='subbody'><div class='subname'>"+(g.label?esc(g.label):"Sem subtema")+" <span class='cnt'>· "+g.pend+" erro"+(g.pend>1?"s":"")+"</span>"+
+      (g.reinc?" <span class='reinc sm'>↺ voltou</span>":"")+"</div><div class='subcond'>"+c[0]+"</div>"+(g.reinc?"<div class='todo-sub' style='font-style:normal;margin-top:2px'>"+c[1]+"</div>":"")+"</div></div>";
+    }).join("")+"</div>"):"";
+   return "<div class='todo'><button class='check' data-done=\""+esc(t.k)+"\" data-n='"+t.n+"' title='"+(bySub?"marcar o tema inteiro como revisado":"marcar como revisado")+"'>○</button>"+
     "<div class='todo-body'><div class='todo-head'><span class='prio'>"+(i+1)+"</span><span class='todo-tema'>"+esc(t.tema)+"</span><span class='todo-area'>"+esc(t.area)+"</span></div>"+
-    (t.reinc?"<div class='reinc'>↺ reincidente · revisado "+t.revs+"x"+(t.lastRev?" (última em "+fmtDate(t.lastRev)+")":"")+" · +"+t.novos+" erro"+(t.novos>1?"s":"")+" depois</div>":"")+
-    "<div class='todo-cond'>"+cond[0]+"</div>"+(t.reinc?"<div class='todo-sub' style='font-style:normal'>"+cond[1]+"</div>":"")+
-    "<div class='todo-meta'><span class='chip "+f[0]+"'>recup. "+f[1]+"</span>"+t.n+" erro"+(t.n>1?"s":"")+" de conhecimento</div>"+
-    ((t.subs&&Object.keys(t.subs).length)?("<div class='todo-sub'>dentro: "+Object.entries(t.subs).sort(function(a,b){return b[1]-a[1];}).map(function(x){return esc(x[0])+" ("+x[1]+")";}).join(" · ")+"</div>"):"")+
+    (!bySub&&t.reinc?"<div class='reinc'>↺ reincidente · revisado "+t.revs+"x"+(t.lastRev?" (última em "+fmtDate(t.lastRev)+")":"")+" · +"+t.novos+" erro"+(t.novos>1?"s":"")+" depois</div>":"")+
+    (bySub?"":"<div class='todo-cond'>"+cond[0]+"</div>"+(t.reinc?"<div class='todo-sub' style='font-style:normal'>"+cond[1]+"</div>":""))+
+    "<div class='todo-meta'><span class='chip "+f[0]+"'>recup. "+f[1]+"</span>"+t.novos+" erro"+(t.novos>1?"s":"")+" de conhecimento"+(bySub?" · marque cada subtema quando revisar":"")+"</div>"+
+    subHtml+
     "<div class='incid'>"+incHtml+"</div></div></div>";
   }).join("");
   box.querySelectorAll('[data-done]').forEach(b=>b.addEventListener('click',()=>{if(RO)return;const k=b.dataset.done;(S.hist[k]=S.hist[k]||[]).push({at:+b.dataset.n,date:new Date().toISOString()});saveAndRender();}));
+  box.querySelectorAll('[data-subdone]').forEach(b=>b.addEventListener('click',()=>{if(RO)return;const key=subKey(b.dataset.subdone,b.dataset.sk);(S.subhist[key]=S.subhist[key]||[]).push({at:+b.dataset.n,date:new Date().toISOString()});saveAndRender();}));
   box.querySelectorAll('[data-inc]').forEach(b=>b.addEventListener('click',()=>{if(RO)return;const k=b.dataset.inc,l=b.dataset.lvl;S.incid[k]=S.incid[k]===l?null:l;saveAndRender();}));
  }
  const exec=S.cls.filter(c=>c.tipo==="atencao"||c.tipo==="tempo");
