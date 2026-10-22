@@ -48,6 +48,7 @@ begin
   return new;
 end;
 $$;
+revoke execute on function public.handle_new_user() from public, anon, authenticated;
 
 -- Quem já tem conta digita o código para virar tutor
 create or replace function public.claim_tutor(code text)
