@@ -70,7 +70,7 @@ Em **Authentication → URL Configuration**:
 
 O plano gratuito do Supabase pausa o projeto depois de 7 dias sem uso. O arquivo
 [`.github/workflows/manter-supabase-acordado.yml`](.github/workflows/manter-supabase-acordado.yml)
-faz o GitHub dar uma "cutucada" no banco a cada 3 dias, então ele não pausa mesmo que ninguém use o site.
+faz o GitHub dar uma "cutucada" no banco duas vezes por dia, então ele não pausa mesmo que ninguém use o site.
 
 - Só começa a rodar quando estiver na branch `main` e com a URL/chave preenchidas no `index.html`.
 - Para testar na hora: GitHub → aba **Actions** → **Manter Supabase acordado** → **Run workflow**.
