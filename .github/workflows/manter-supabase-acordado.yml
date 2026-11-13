@@ -1,10 +1,11 @@
-# Dá uma "cutucada" no Supabase a cada 3 dias para o projeto gratuito
+# Dá uma "cutucada" no Supabase todo dia para o projeto gratuito
 # não pausar por falta de uso. Lê a URL e a chave anon do index.html.
 name: Manter Supabase acordado
 
 on:
   schedule:
-    - cron: "17 12 */3 * *"   # a cada 3 dias, ~9h17 de Brasília
+    - cron: "17 12 * * *"     # todo dia, ~9h17 de Brasília
+    - cron: "47 23 * * *"     # e de novo ~20h47, caso o GitHub pule um horário
   workflow_dispatch:           # botão "Run workflow" para testar na mão
 
 permissions:
@@ -15,7 +16,7 @@ jobs:
   cutucar:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Cutucar o Supabase
         run: |
@@ -25,10 +26,13 @@ jobs:
             echo "::notice::Supabase ainda não configurado no index.html — nada a fazer."
             exit 0
           fi
+          # Banco (via API REST) e login (Auth): duas partes do projeto contam como uso.
           code=$(curl -s -o /dev/null -w "%{http_code}" \
             "$URL/rest/v1/profiles?select=id&limit=1" \
             -H "apikey: $KEY")
-          echo "Supabase respondeu HTTP $code"
+          auth=$(curl -s -o /dev/null -w "%{http_code}" \
+            "$URL/auth/v1/settings" -H "apikey: $KEY")
+          echo "Supabase respondeu: banco HTTP $code, login HTTP $auth"
           if [ "$code" != "200" ]; then
             echo "::error::Supabase não respondeu 200 — pode estar pausado. Abra o painel do Supabase e clique em Restore."
             exit 1
